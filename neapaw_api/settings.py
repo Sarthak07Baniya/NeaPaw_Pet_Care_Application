@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'authentication',
     'profiles',
     'pets',
+    'treatment',
 
 ]
 
