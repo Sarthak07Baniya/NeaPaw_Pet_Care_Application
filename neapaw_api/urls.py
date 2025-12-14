@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('authentication.urls')),
     path('api/v1/pets/', include('pets.urls')),
+    path('api/v1/profiles/', include('profiles.urls')),
 
 
     #Swagger Documentation
