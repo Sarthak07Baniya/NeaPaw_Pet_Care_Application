@@ -34,9 +34,10 @@ INSTALLED_APPS = [
 
     # Local apps
     'authentication',
-    'profiles',
-    'pets',
-    'treatment',
+     'pets',
+     'treatment',
+     'profiles',
+
 
 ]
 
@@ -114,6 +115,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'authentication.User'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
 
 
 REST_FRAMEWORK = {
@@ -143,3 +151,6 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+# Ensure logs directory exists
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOGS_DIR, exist_ok=True)

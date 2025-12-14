@@ -24,6 +24,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('authentication.urls')),
+    path('api/v1/pets/', include('pets.urls')),
+
 
     #Swagger Documentation
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
