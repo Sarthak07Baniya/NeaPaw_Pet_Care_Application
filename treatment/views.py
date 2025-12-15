@@ -14,6 +14,8 @@ class TreatmentBookingViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return TreatmentBooking.objects.none()
         return TreatmentBooking.objects.filter(user=self.request.user)
 
     @action(detail=True, methods=['post'])
@@ -24,3 +26,4 @@ class TreatmentBookingViewSet(viewsets.ModelViewSet):
             booking.save()
             return Response({'status': 'booking cancelled'})
         return Response({'error': 'Cannot cancel booking'}, status=status.HTTP_400_BAD_REQUEST)
+

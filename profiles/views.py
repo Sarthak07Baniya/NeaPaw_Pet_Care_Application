@@ -2,11 +2,15 @@ from rest_framework import viewsets, permissions
 from .models import ShippingAddress, SavedCard
 from .serializers import ShippingAddressSerializer, SavedCardSerializer
 
+
 class ShippingAddressViewSet(viewsets.ModelViewSet):
     serializer_class = ShippingAddressSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # Fix for Swagger documentation generation
+        if getattr(self, 'swagger_fake_view', False):
+            return ShippingAddress.objects.none()
         return ShippingAddress.objects.filter(user=self.request.user)
 
 class SavedCardViewSet(viewsets.ModelViewSet):
