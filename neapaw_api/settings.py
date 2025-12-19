@@ -20,6 +20,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin', #Must be before django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +41,130 @@ INSTALLED_APPS = [
     'profiles',
     'treatment',
 ]
+
+#Jazzmin Settings
+
+JAZZMIN_SETTINGS = {
+
+    #Site branding
+    "site_title": "Neapaw Admin",
+    "site_header": "NeaPaw Pet Care",
+    "site_brand" : "NeaPaw",
+    "site_logo": None, #Can add logo path later
+    "login_logo": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    "welcome_sign": "Welcome to Neapaw Pet Care Admin Portal",
+    "copyright": "Neapaw Pet Care",
+    "search_model": ["auth.User", "pets.Pet"],
+
+    #Top menu links
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "API Docs", "url": "/swagger", "new_window":True},
+        {"model":"auth.User"},
+    ],
+
+    #User menu links
+    "usermenu_links":[
+        {"model": "auth.user"}
+    ],
+
+    # Side Menu
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_app": [],
+    "hide_models": [],
+
+    #Custom menu ordering
+    "order_with_respect_to": [
+        "auth",
+        "authentication",
+        "profiles",
+        "pets",
+        "treatment",
+    ],
+
+    # Icons for models (using Font Awesome)
+    "icons":{
+        "auth" : "fas fa-user-cog",
+        "auth.user" : "fas fa-user",
+        "auth.Group": "fas fa-user",
+        "authentication.user" : "fas fa-user-circle",
+        "profiles.profile": "fas fa-id-card",
+        "pets.pet": "fas fa-paw",
+        "treatment.treatment": "fas fa-medkit",
+
+    },
+
+    #UI Tweaks
+    "custom_css": None,
+    "custome_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+
+    # Change from settings
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user" : "collapsible",
+        "auth.group": "vertical_tabs",
+
+    },
+
+    #Related model
+    "related_modal_active": False,
+
+    # Custom links
+
+    "custom_links" : {
+        "pets" : [{
+            "name" : "View All Pets",
+            "url" : "admin:pets_pet_changelist",
+            "icon": "fas fa-paw",
+            "permissions": ["pets.view_pet"]
+
+        }],
+    },
+
+    #"show_ui_builder": True, #Customize the admin portal
+
+
+}
+
+#Jazzmin UI Tweaks
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar" : "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes" : {
+        "primary": "btn-primary",
+        "secondary" : "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn_warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+    
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

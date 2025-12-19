@@ -4,20 +4,20 @@ from rest_framework.response import Response
 from .models import TreatmentType, TreatmentBooking
 from .serializers import TreatmentTypeSerializer, TreatmentBookingSerializer
 
-class TreatmentTypeViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = TreatmentType.objects.all()
+class TreatmentTypeViewSet(viewsets.ReadOnlyModelViewSet): #Only get request
+    queryset = TreatmentType.objects.all() 
     serializer_class = TreatmentTypeSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny] #anyone can access even not logged in
 
-class TreatmentBookingViewSet(viewsets.ModelViewSet):
+class TreatmentBookingViewSet(viewsets.ModelViewSet): #CRUD
     serializer_class = TreatmentBookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated] #only authenticated person can book
 
     def get_queryset(self):
-        return TreatmentBooking.objects.filter(user=self.request.user)
+        return TreatmentBooking.objects.filter(user=self.request.user) #ensures only a user sees their own booking
 
-    @action(detail=True, methods=['post'])
-    def cancel(self, request, pk=None):
+    @action(detail=True, methods=['post']) #booking cancle action #details=ture applies to the single booking
+    def cancel(self, request, pk=None): #argument has default value
         booking = self.get_object()
         if booking.status == 'pending':
             booking.status = 'cancelled'
