@@ -18,7 +18,7 @@ class ShippingAddress(models.Model):
 
     def save(self, *args, **kwargs):
         if self.is_default:
-            ShippingAddress.objects.filter(user=self.user).update(is_default=False)
+            ShippingAddress.objects.filter(user=self.user).update(is_default=False) #only one default address per user
         super().save(*args, **kwargs)
 
 class SavedCard(models.Model):

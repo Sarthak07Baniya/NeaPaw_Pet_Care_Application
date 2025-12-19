@@ -44,4 +44,4 @@ class TreatmentBooking(models.Model):
         """Set price from treatment type if not specified"""
         if not self.price or self.price == 0:
             self.price = self.treatment_type.base_price
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs) #positional arguments, keyword arguments

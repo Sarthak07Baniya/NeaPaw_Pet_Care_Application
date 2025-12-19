@@ -2,13 +2,13 @@ from django.contrib import admin
 from .models import TreatmentType, TreatmentBooking
 
 
-@admin.register(TreatmentType)
+@admin.register(TreatmentType) #decorator
 class TreatmentTypeAdmin(admin.ModelAdmin):
     """Admin configuration for TreatmentType model"""
     list_display = ('name', 'base_price', 'duration_minutes', 'icon')
     search_fields = ('name', 'description')
     
-    fieldsets = (
+    fieldsets = ( #section of forms
         ('Basic Information', {
             'fields': ('name', 'description', 'icon')
         }),

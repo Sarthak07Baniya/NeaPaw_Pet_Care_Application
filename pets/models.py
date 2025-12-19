@@ -1,5 +1,5 @@
-from django.db import models
-from django.conf import settings
+from django.db import models #imprts django database models modules
+from django.conf import settings #imports django settings
 
 class Pet(models.Model):
     GENDER_CHOICES = (

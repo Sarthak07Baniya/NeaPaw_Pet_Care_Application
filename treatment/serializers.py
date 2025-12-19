@@ -3,7 +3,8 @@ from .models import TreatmentType, TreatmentBooking
 from pets.serializers import PetSerializer
 
 class TreatmentTypeSerializer(serializers.ModelSerializer):
-    class Meta:
+    #all models and fields should be exposed to API response
+    class Meta: #container class for settings
         model = TreatmentType
         fields = '__all__'
 

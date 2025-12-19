@@ -21,7 +21,7 @@ class ShippingAddressAdmin(admin.ModelAdmin):
         }),
     )
     
-    actions = ['set_as_default']
+    actions = ['set_as_default'] #registers custom admin
     
     def set_as_default(self, request, queryset):
         """Set selected address as default"""
