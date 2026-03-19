@@ -1,7 +1,7 @@
 import { useFonts } from "expo-font";
-import { useRef, useState } from "react";
+import { CommonActions } from "@react-navigation/native";
+import { useState } from "react";
 import {
-  Animated,
   Image,
   ScrollView,
   StyleSheet,
@@ -14,18 +14,15 @@ import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
 
 import { loginSuccess } from "../../redux/slice/authSlice";
+import { setPetData, setSelectedDate } from "../../redux/slice/myPetSlice";
 import { authService } from "../../services/authService";
+import { petService } from "../../services/petService";
 
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  
-  // Long-press state
-  const longPressTimer = useRef(null);
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   let [fontsLoaded] = useFonts({
     "Nunito-Bold": require("../../assets/fonts/Nunito-ExtraBold.ttf"),
@@ -64,12 +61,43 @@ const LoginScreen = ({ navigation }) => {
       const response = await authService.login(email, password);
 
       if (response.success) {
-        // Successfully logged in, navigation will be handled by MainNavigations
-        // based on auth token presence
         dispatch(loginSuccess({
           token: response.token,
           user: response.user
         }));
+
+        const parentNavigation = navigation.getParent?.() || navigation;
+
+        try {
+          const petsResponse = await petService.getPets();
+          const pets = petsResponse?.results || petsResponse || [];
+
+          if (pets.length > 0) {
+            dispatch(setPetData(pets[0]));
+            dispatch(setSelectedDate(new Date().toISOString()));
+            parentNavigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "bottomNavStack" }],
+              })
+            );
+          } else {
+            parentNavigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "startStack" }],
+              })
+            );
+          }
+        } catch (petError) {
+          console.error("Post-login pet fetch error:", petError);
+          parentNavigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: "startStack" }],
+            })
+          );
+        }
       } else {
         Toast.show({
           type: 'error',
@@ -96,64 +124,6 @@ const LoginScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
-
-  const handleDemoLogin = () => {
-    setIsDemoMode(true);
-    setIsLoading(true);
-    
-    // Simulate a brief loading period for professional feel
-    setTimeout(() => {
-      Toast.show({
-        type: 'success',
-        text1: 'Demo Mode',
-        text2: 'Welcome to the demo! Exploring with sample data.',
-      });
-      
-      // Navigate to the start stack, then to PetSpicie
-      setTimeout(() => {
-        navigation.navigate("startStack", {
-          screen: "PetSpicie"
-        });
-        setIsLoading(false);
-        setIsDemoMode(false);
-      }, 1000);
-    }, 500);
-  };
-
-  const handlePressIn = () => {
-    // Start the long-press timer
-    longPressTimer.current = setTimeout(() => {
-      // Trigger demo login after 3 seconds
-      handleDemoLogin();
-    }, 2000);
-
-    // Animate the progress indicator
-    Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: 3000,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    // Clear the timer if user releases before 3 seconds
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-
-    // Reset the progress animation
-    Animated.timing(progressAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -200,22 +170,12 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={handleLogin}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
           style={styles.loginButton}
           disabled={isLoading}
         >
           <Text style={styles.loginButtonText}>
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </Text>
-          
-          {/* Progress indicator for long-press */}
-          <Animated.View 
-            style={[
-              styles.progressBar,
-              { width: progressWidth }
-            ]} 
-          />
         </TouchableOpacity>
         
    
@@ -288,21 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     zIndex: 2,
-  },
-  progressBar: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    zIndex: 1,
-  },
-  demoHint: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#888",
-    marginTop: 10,
-    fontStyle: "italic",
   },
   forgotPasswordLink: {
     marginTop: 8,
