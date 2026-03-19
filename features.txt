@@ -1,0 +1,166 @@
+Features
+[Done] 3 Splash screen with Get Started Button
+[Done] Register (Create an account email, password, contact number, terms and
+conditions and register button) with proper authentication and verification
+[Done] Home page
+Sections to be kept in home page
+(Shopping, Treatment, pet Hostel, adoption)
+Latest Offers
+(pet hostel offer, treatment offer, shopping offer, pet grooming)
+Best Selling Items
+
+[Done] Under Shopping
+Search, filter, sort (All, food, belt, cloth)
+Item quantity listing, reviews, product description
+Add to cart / Order now button/ checkout button (personal info form ,
+payment (payment methods) , confirmation (promocode, place order
+button), Available Coupon (get 50% off), Apply Coupon button), Order
+confirmation page with continue button.
+Track Order section for (shopping, treatment, pet hostel) with chatting
+
+[Done] Treatment
+Under treatment
+Select pet with dropdown menu to select pet
+Select treatment with dropdown menu (grooming, pet training, veterinarian)
+book with pricing listed
+
+Service Types (pick up and store visit check boxes with calendar and time
+to select)
+Book now button
+Personal info- Payment, Confirmation like e-commerce
+Confirm Booking page with rate and review page
+
+[Done] Pet Hostel
+Select pet with dropdown menu
+Check in/ checkout section with calendar
+Pick up and store visit with check box
+Additional Treatment section (User can select one or two treatments at
+once)
+Allergies health condition, diet carnivore/ half carnivore diet, pet nature,
+upiya vaccination cha ki chaina confirmation/ communicable disease
+Ngrita photo upload/ kyc / police report
+Contract templet terms and conditions
+Book now button
+Personal info- payment-confirmation pages
+
+[Done] Adoption Section
+Search and filter section
+Dog/ cat/ Rabbit section
+Dog name/ age/ sex/ weight/ review/ description
+Adopt now button
+Adoption form fill-up (Have you previously owned pets? / Why do you want
+to adopt?)
+Submit button
+
+Add a new pet section
+List of pets
+Add new pet options (Photo upload, pet Name, types of pet, breed,
+birthday, gender weight, description)
+Save button
+
+[Done] Profile Section
+Picture (Name, email)
+Dark mode
+Edit profile
+Orders
+Shipping Address
+My saved cards
+Review
+Notifications
+
+About US
+Log out
+
+Admin Dashboard
+
+Allergies health condition, diet carnivore/ half carnivore diet, pet nature,
+upiya vaccination cha ki chaina confirmation/ communicable disease
+Ngrita photo upload/ kyc / police report
+Contract templet terms and conditions
+
+HOME
+Offers
+Best sellers
+
+SHOPPING ADD PETS
+List of pets
+(Add a new pet)
+Upload pet
+Pet name
+Types of pets
+Breed
+Nature
+Birthdate
+Gender
+Weight
+Description
+
+PROFILE
+Dark mode
+Edit profile
+Order
+Shipping address
+My saved cards
+Review
+Notifications
+About us
+Log out
+
+SHOPPING TREATMENT PET HOSTEL ADOPTION
+SEARCH, PET
+ITEMS ,FILTER
+
+Select pet with
+dropdown
+
+Select pet Search, filter
+
+Items name,
+description, price,
+quantily list, review,
+add to cart order
+now.
+
+Select treatment
+with dropdown
+(grooming, vet, pet
+training)
+
+Check-in checkout
+calendar
+
+Dog pic, name,
+breed, description,
+age, gender,
+weight, review,
+
+List of all orders,
+Shopping,
+treatment pet
+hostel
+
+Service type
+(pickup, store visit
+) with calendar
+
+Service types
+(pickup, store visit)
+
+Adopt now button,
+
+Order track, chat Select time and like
+ecommerce
+Health checkup,
+vaccination tracing,
+
+Additional
+Treatment
+(grooming)
+
+Living address,
+have you
+previously owned
+pets? Why do you
+want to adopt?
+(Terms and
+condition form)
