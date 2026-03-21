@@ -7,6 +7,7 @@ import ProductCard from '../../components/ui/ProductCard/ProductCard';
 import SearchBar from '../../components/ui/SearchBar/SearchBar';
 import { addToCart, selectCartCount } from '../../redux/slice/cartSlice';
 import { fetchProducts, selectProducts, setSearchQuery, setSelectedCategory, setSortOption } from '../../redux/slice/shoppingSlice';
+import { resolveMediaUrl } from '../../services/api';
 
 
 const ShoppingHome = ({ navigation }) => {
@@ -104,6 +105,7 @@ const ShoppingHome = ({ navigation }) => {
         rating={item.rating}
         reviews={item.reviews_count || item.reviews || 0}
         category={item.category}
+        imageUrl={resolveMediaUrl(item.images?.find((image) => image.is_primary)?.image || item.images?.[0]?.image)}
         onPress={() => handleProductPress(item)}
         onAddToCart={() => handleAddToCart(item)}
       />

@@ -1,10 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import ReviewCard from '../../components/ui/ReviewCard/ReviewCard';
 import { addToCart } from '../../redux/slice/cartSlice';
 import { fetchProductReviews } from '../../redux/slice/shoppingSlice';
+import { resolveMediaUrl } from '../../services/api';
 
 const ProductDetail = ({ route, navigation }) => {
   const product = route?.params?.product;
@@ -44,6 +45,10 @@ const ProductDetail = ({ route, navigation }) => {
     return stars;
   };
 
+  const imageUrl = resolveMediaUrl(
+    product?.images?.find((image) => image.is_primary)?.image || product?.images?.[0]?.image
+  );
+
   return (
     <View style={styles.container}>
       {!product ? (
@@ -59,7 +64,11 @@ const ProductDetail = ({ route, navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Product Image */}
         <View style={styles.imageContainer}>
-          <Feather name="package" size={100} color="#CCCCCC" />
+          {imageUrl ? (
+            <Image source={{ uri: imageUrl }} style={styles.productImage} resizeMode="cover" />
+          ) : (
+            <Feather name="package" size={100} color="#CCCCCC" />
+          )}
         </View>
 
         {/* Product Info */}
@@ -144,6 +153,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
   },
   infoContainer: {
     padding: 20,

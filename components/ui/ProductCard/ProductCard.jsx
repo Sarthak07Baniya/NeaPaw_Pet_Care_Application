@@ -1,10 +1,10 @@
 import { Feather } from "@expo/vector-icons";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 45) / 2; // 2 columns with padding
 
-const ProductCard = ({ name, price, rating, reviews, category, onPress, onAddToCart }) => {
+const ProductCard = ({ name, price, rating, reviews, category, imageUrl, onPress, onAddToCart }) => {
   // Render star rating
   const renderStars = () => {
     const stars = [];
@@ -23,9 +23,13 @@ const ProductCard = ({ name, price, rating, reviews, category, onPress, onAddToC
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.imageContainer}>
-        <View style={styles.imagePlaceholder}>
-          <Feather name="package" size={40} color="#CCCCCC" />
-        </View>
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Feather name="package" size={40} color="#CCCCCC" />
+          </View>
+        )}
         <View style={styles.categoryBadge}>
           <Text style={styles.categoryText}>{category}</Text>
         </View>
@@ -82,6 +86,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   categoryBadge: {
     position: 'absolute',
