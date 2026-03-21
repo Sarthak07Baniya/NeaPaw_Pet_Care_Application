@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 
-const DEFAULT_BASE_URL = 'http://192.168.1.149:8000/api/v1/';
+const DEFAULT_BASE_URL = 'http://172.20.10.4:8000/api/v1/';
 
 const getStoredBaseUrl = async () => {
   const stored = await AsyncStorage.getItem('apiBaseUrl');
