@@ -50,6 +50,30 @@ const HostelCheckout = ({ navigation }) => {
   const tax = Math.round((roomPrice + serviceFee + treatmentsTotal) * 0.05);
   const total = roomPrice + serviceFee + treatmentsTotal + tax;
 
+  const navigateToOrders = () => {
+    const rootNavigation = navigation.getParent?.();
+    const tabNavigation = rootNavigation?.getParent?.();
+
+    if (tabNavigation) {
+      tabNavigation.navigate('Home', {
+        screen: 'OrdersStack',
+        params: {
+          screen: 'OrderTracking',
+        },
+      });
+      return;
+    }
+
+    if (rootNavigation) {
+      rootNavigation.navigate('OrdersStack', {
+        screen: 'OrderTracking',
+      });
+      return;
+    }
+
+    navigation.navigate('HostelHome');
+  };
+
   const handleConfirmBooking = () => {
     if (!selectedPet || !selectedRoom || !checkInDate || !checkOutDate || !selectedServiceType) {
       Alert.alert('Incomplete Booking', 'Please complete the hostel selections first.');
@@ -87,10 +111,11 @@ const HostelCheckout = ({ navigation }) => {
       .unwrap()
       .then((result) => {
         dispatch(resetHostelSelection());
+        const orderNumber = result?.order_number || result?.order?.order_number || result?.order || result?.id;
         Alert.alert(
           'Booking Confirmed!',
-          `Your hostel booking has been confirmed. Booking ID: ${result.id}`,
-          [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+          `Your hostel booking has been confirmed. Order ID: ${orderNumber}`,
+          [{ text: 'OK', onPress: navigateToOrders }]
         );
       })
       .catch((error) => {
@@ -138,15 +163,15 @@ const HostelCheckout = ({ navigation }) => {
 
         {/* Personal Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-          <Text style={styles.inputLabel}>Full Name</Text>
+          <Text style={styles.sectionTitle}>Personal Information *</Text>
+          <Text style={styles.inputLabel}>Full Name *</Text>
           <TextInput
             style={styles.input}
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
-          <Text style={styles.inputLabel}>Phone Number</Text>
+          <Text style={styles.inputLabel}>Phone Number *</Text>
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -154,7 +179,7 @@ const HostelCheckout = ({ navigation }) => {
             onChangeText={setPhone}
             keyboardType="phone-pad"
           />
-          <Text style={styles.inputLabel}>Email Address</Text>
+          <Text style={styles.inputLabel}>Email Address *</Text>
           <TextInput
             style={styles.input}
             placeholder="Email Address"
@@ -162,7 +187,7 @@ const HostelCheckout = ({ navigation }) => {
             onChangeText={setEmail}
             keyboardType="email-address"
           />
-          <Text style={styles.inputLabel}>Address</Text>
+          <Text style={styles.inputLabel}>Address *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Address"
@@ -175,7 +200,7 @@ const HostelCheckout = ({ navigation }) => {
 
         {/* Payment Method */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment Method</Text>
+          <Text style={styles.sectionTitle}>Payment Method *</Text>
           {paymentMethods.map((method) => (
             <TouchableOpacity
               key={method.id}
@@ -234,6 +259,7 @@ const HostelCheckout = ({ navigation }) => {
             />
             <Text style={styles.termsText}>
               I agree to the terms and conditions for pet hostel services
+              {' *'}
             </Text>
           </TouchableOpacity>
         </View>

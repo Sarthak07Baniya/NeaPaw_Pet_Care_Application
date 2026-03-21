@@ -101,7 +101,7 @@ const HostelHome = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Select Pet */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Pet</Text>
+          <Text style={styles.sectionTitle}>Select Pet *</Text>
           <TouchableOpacity
             style={styles.dropdown}
             onPress={() => setShowPetDropdown(!showPetDropdown)}
@@ -135,7 +135,7 @@ const HostelHome = ({ navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Room</Text>
+          <Text style={styles.sectionTitle}>Select Room *</Text>
           {(rooms || []).map((room) => (
             <TouchableOpacity
               key={room.id}
@@ -167,7 +167,7 @@ const HostelHome = ({ navigation }) => {
 
         {/* Calendar */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Check-in / Check-out</Text>
+          <Text style={styles.sectionTitle}>Check-in / Check-out *</Text>
           <Calendar
             minDate={new Date().toISOString().split('T')[0]}
             onDayPress={handleDateSelect}
@@ -190,7 +190,7 @@ const HostelHome = ({ navigation }) => {
 
         {/* Service Type */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Service Type</Text>
+          <Text style={styles.sectionTitle}>Service Type *</Text>
           {serviceTypes.map((type) => (
             <TouchableOpacity
               key={type.id}
