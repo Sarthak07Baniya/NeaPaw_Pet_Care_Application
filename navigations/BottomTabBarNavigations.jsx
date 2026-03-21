@@ -7,12 +7,12 @@ import {
 } from "../components/ui/CustomHeader/CustomMainHeader";
 import Home from "../screens/Home/Home";
 import MyPet from "../screens/MyPet/MyPet";
-import ProfileHome from "../screens/Profile/ProfileHome";
 import AdoptionNavigation from "./AdoptionNavigation";
 import ActivitiesNavigation from "./ActivitiesNavigation";
 import HealtNavigations from "./HealthNavigation";
 import OrdersNavigation from "./OrdersNavigations";
 import PetHostelNavigation from "./PetHostelNavigation";
+import ProfileNavigation from "./ProfileNavigation";
 import ShoppingNavigation from "./ShoppingNavigation";
 import TreatmentNavigation from "./TreatmentNavigation";
 
@@ -120,19 +120,10 @@ const BottomTabBarNavigations = ({ navigation }) => {
       />
       <Tab.Screen
         name="Menu"
-        component={ProfileHome}
-        options={({ navigation }) => ({
-          headerStyle: {
-            shadowColor: "transparent", // this covers iOS
-            elevation: 0, // this covers Android
-            height: 120,
-          },
-          headerTitleStyle: {
-            display: "none",
-          },
-          headerLeft: () => <CustomMainHeaderLeft isNameVisible={true} />,
-          headerRight: () => <CustomMainHeaderRight navigation={navigation} />,
-        })}
+        component={ProfileNavigation}
+        options={{
+          headerShown: false,
+        }}
       />
     </Tab.Navigator>
   );
