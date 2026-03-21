@@ -84,6 +84,18 @@ const Home = ({ navigation }) => {
     });
   };
 
+  const handleSeeAllOffers = () => {
+    navigation.navigate('ShoppingStack', {
+      screen: 'ShoppingHome',
+    });
+  };
+
+  const handleSeeAllProducts = () => {
+    navigation.navigate('ShoppingStack', {
+      screen: 'ShoppingHome',
+    });
+  };
+
   const renderServiceCard = ({ item, index }) => (
     <ServiceCard
       title={item.title}
@@ -175,7 +187,7 @@ const Home = ({ navigation }) => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Latest Offers</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleSeeAllOffers}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -193,7 +205,7 @@ const Home = ({ navigation }) => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Best Selling Items</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleSeeAllProducts}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
