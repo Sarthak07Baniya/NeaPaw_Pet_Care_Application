@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { resolveMediaUrl } from "../../../services/api";
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
   if (!item) return null;
@@ -7,6 +8,10 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
   const { product, quantity, productId } = item;
   if (!product) return null;
   const subtotal = (product.price || 0) * quantity;
+  const imageUrl = resolveMediaUrl(
+    product.images?.find((image) => image?.is_primary)?.image ||
+    product.images?.[0]?.image
+  );
 
   const handleDecrease = () => {
     if (quantity > 1) {
@@ -21,7 +26,11 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Feather name="package" size={40} color="#CCCCCC" />
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <Feather name="package" size={40} color="#CCCCCC" />
+        )}
       </View>
 
       <View style={styles.details}>
@@ -87,6 +96,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
   },
   details: {
     flex: 1,
