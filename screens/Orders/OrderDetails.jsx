@@ -15,8 +15,7 @@ const OrderDetails = ({ route, navigation }) => {
   const normalizedOrderStatus = normalizeStatus(order.status || 'pending');
   const canReviewPurchasedItems =
     orderType === 'shopping' &&
-    normalizedOrderStatus !== 'pending' &&
-    normalizedOrderStatus !== 'cancelled';
+    normalizedOrderStatus === 'delivered';
   const currentStatusIndex = Math.max(
     0,
     statuses.findIndex((status) => normalizeStatus(status) === normalizedOrderStatus)
