@@ -76,6 +76,8 @@ const TreatmentCheckout = ({ navigation }) => {
         dispatch(resetTreatmentSelection());
         navigation.navigate('BookingConfirmation', {
           bookingId: result.id,
+          orderId: result.order,
+          orderNumber: result.order_number || result.order?.order_number || null,
           total,
         });
       })
@@ -114,15 +116,15 @@ const TreatmentCheckout = ({ navigation }) => {
 
         {/* Personal Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-          <Text style={styles.inputLabel}>Full Name</Text>
+          <Text style={styles.sectionTitle}>Personal Information *</Text>
+          <Text style={styles.inputLabel}>Full Name *</Text>
           <TextInput
             style={styles.input}
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
-          <Text style={styles.inputLabel}>Phone Number</Text>
+          <Text style={styles.inputLabel}>Phone Number *</Text>
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -130,7 +132,7 @@ const TreatmentCheckout = ({ navigation }) => {
             onChangeText={setPhone}
             keyboardType="phone-pad"
           />
-          <Text style={styles.inputLabel}>Email Address</Text>
+          <Text style={styles.inputLabel}>Email Address *</Text>
           <TextInput
             style={styles.input}
             placeholder="Email Address"
@@ -138,7 +140,7 @@ const TreatmentCheckout = ({ navigation }) => {
             onChangeText={setEmail}
             keyboardType="email-address"
           />
-          <Text style={styles.inputLabel}>Address</Text>
+          <Text style={styles.inputLabel}>Address *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Address"
@@ -151,7 +153,7 @@ const TreatmentCheckout = ({ navigation }) => {
 
         {/* Payment Method */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment Method</Text>
+          <Text style={styles.sectionTitle}>Payment Method *</Text>
           {paymentMethods.map((method) => (
             <TouchableOpacity
               key={method.id}

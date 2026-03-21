@@ -81,7 +81,7 @@ const TreatmentHome = ({ navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Pet</Text>
+          <Text style={styles.sectionTitle}>Select Pet *</Text>
           <TouchableOpacity
             style={styles.dropdown}
             onPress={() => setShowPetDropdown(!showPetDropdown)}
@@ -123,7 +123,7 @@ const TreatmentHome = ({ navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Treatment</Text>
+          <Text style={styles.sectionTitle}>Select Treatment *</Text>
           <TouchableOpacity
             style={styles.dropdown}
             onPress={() => setShowTreatmentDropdown(!showTreatmentDropdown)}

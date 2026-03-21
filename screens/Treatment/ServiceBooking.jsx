@@ -71,7 +71,7 @@ const ServiceBooking = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Service Type Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Service Type</Text>
+          <Text style={styles.sectionTitle}>Service Type *</Text>
           {serviceTypes.map((type) => (
             <TouchableOpacity
               key={type.id}
@@ -101,7 +101,7 @@ const ServiceBooking = ({ navigation }) => {
 
         {/* Calendar */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Date</Text>
+          <Text style={styles.sectionTitle}>Select Date *</Text>
           <Calendar
             minDate={new Date().toISOString().split('T')[0]}
             onDayPress={handleDateSelect}
@@ -117,7 +117,7 @@ const ServiceBooking = ({ navigation }) => {
         {/* Time Slots */}
         {selectedDate && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Time</Text>
+            <Text style={styles.sectionTitle}>Select Time *</Text>
             <View style={styles.timeGrid}>
               {availableTimeSlots.map((time) => (
                 <TouchableOpacity
