@@ -24,6 +24,7 @@ import {
   setPetData
 } from "../../redux/slice/myPetSlice";
 import { authService } from "../../services/authService";
+import { resolveMediaUrl } from "../../services/api";
 
 const Menu = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -169,9 +170,9 @@ const Menu = ({ navigation }) => {
               ]}
             >
               <View style={styles.petImageContainer}>
-                {pet.photoURL ? (
+                {resolveMediaUrl(pet.photoURL || pet.photo || pet.image) ? (
                   <Image
-                    source={{ uri: pet.photoURL }}
+                    source={{ uri: resolveMediaUrl(pet.photoURL || pet.photo || pet.image) }}
                     style={styles.petImage}
                   />
                 ) : (

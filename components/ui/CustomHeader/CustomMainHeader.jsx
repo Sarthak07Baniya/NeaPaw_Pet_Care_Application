@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import catImage from "../../../assets/emptyPetImages/cat.png";
 import dogImage from "../../../assets/emptyPetImages/dog.png";
 import { setSelectedDate } from "../../../redux/slice/myPetSlice";
+import { resolveMediaUrl } from "../../../services/api";
 
 import { setId } from "../../../redux/slice/myPetSlice";
 
@@ -16,7 +17,7 @@ export const CustomMainHeaderLeft = ({ isNameVisible }) => {
   const petName = currentPetInfo?.name || "My Pet";
   const petBreed = currentPetInfo?.breed || (hasPets ? "Pet Profile" : "No pet added");
   const petSpecies = (currentPetInfo?.spicie || "").toLowerCase();
-  const petPhoto = currentPetInfo?.photoURL;
+  const petPhoto = resolveMediaUrl(currentPetInfo?.photoURL || currentPetInfo?.photo || currentPetInfo?.image);
 
   const petChangeHandler = () => {
     if (myPets.length >= 2) {
