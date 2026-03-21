@@ -117,14 +117,14 @@ const Checkout = ({ navigation }) => {
         {/* Personal Info */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          <Text style={styles.inputLabel}>Full Name</Text>
+          <Text style={styles.inputLabel}>Full Name *</Text>
           <TextInput
             style={styles.input}
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
-          <Text style={styles.inputLabel}>Phone Number</Text>
+          <Text style={styles.inputLabel}>Phone Number *</Text>
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -132,7 +132,7 @@ const Checkout = ({ navigation }) => {
             onChangeText={setPhone}
             keyboardType="phone-pad"
           />
-          <Text style={styles.inputLabel}>Email Address</Text>
+          <Text style={styles.inputLabel}>Email Address *</Text>
           <TextInput
             style={styles.input}
             placeholder="Email Address"
@@ -145,7 +145,7 @@ const Checkout = ({ navigation }) => {
         {/* Delivery Address */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Delivery Address</Text>
-          <Text style={styles.inputLabel}>Address</Text>
+          <Text style={styles.inputLabel}>Address *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Enter your complete address"
