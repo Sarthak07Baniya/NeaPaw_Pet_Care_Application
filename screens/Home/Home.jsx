@@ -129,7 +129,7 @@ const Home = ({ navigation }) => {
         name={item.name}
         price={item.price}
         rating={item.rating}
-        reviews={item.reviews}
+        reviews={item.reviews_count || item.reviews || 0}
         category={item.category}
         imageUrl={resolveMediaUrl(item.images?.find((image) => image.is_primary)?.image || item.images?.[0]?.image)}
         onPress={() => handleProductPress(item)}
