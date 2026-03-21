@@ -11,6 +11,16 @@ export const shoppingService = {
     }
   },
 
+  getProduct: async (productId) => {
+    try {
+      const response = await api.get(`shopping/products/${productId}/`);
+      return response.data;
+    } catch (error) {
+      console.error("Get product error:", error);
+      throw error;
+    }
+  },
+
   getOffers: async () => {
     try {
       const response = await api.get('shopping/offers/');
@@ -27,6 +37,16 @@ export const shoppingService = {
       return response.data;
     } catch (error) {
       console.error("Get product reviews error:", error);
+      throw error;
+    }
+  },
+
+  addProductReview: async (productId, reviewData) => {
+    try {
+      const response = await api.post(`shopping/products/${productId}/reviews/`, reviewData);
+      return response.data;
+    } catch (error) {
+      console.error("Add product review error:", error);
       throw error;
     }
   },

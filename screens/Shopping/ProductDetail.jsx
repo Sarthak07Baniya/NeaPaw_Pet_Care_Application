@@ -1,17 +1,51 @@
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import ReviewCard from '../../components/ui/ReviewCard/ReviewCard';
-import { addToCart } from '../../redux/slice/cartSlice';
+import { addToCart, selectCartItems } from '../../redux/slice/cartSlice';
 import { fetchProductReviews } from '../../redux/slice/shoppingSlice';
 import { resolveMediaUrl } from '../../services/api';
+import { shoppingService } from '../../services/shoppingService';
 
 const ProductDetail = ({ route, navigation }) => {
-  const product = route?.params?.product;
+  const routeProduct = route?.params?.product;
+  const canReview = Boolean(route?.params?.canReview);
   const dispatch = useDispatch();
+  const [product, setProduct] = useState(routeProduct || null);
   const [quantity, setQuantity] = useState(1);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
   const reviews = useSelector((state) => state.shopping.productReviews) || [];
+  const cartItems = useSelector(selectCartItems);
+  const stockQuantity = Number(product?.stock_quantity || 0);
+  const isOutOfStock = !product?.in_stock || stockQuantity <= 0;
+  const quantityInCart = cartItems
+    .filter((item) => (item?.product?.id || item?.productId) === product?.id)
+    .reduce((total, item) => total + (item?.quantity || 0), 0);
+  const remainingStock = Math.max(stockQuantity - quantityInCart, 0);
+
+  useEffect(() => {
+    setProduct(routeProduct || null);
+  }, [routeProduct]);
+
+  useEffect(() => {
+    const fetchLatestProduct = async () => {
+      if (!routeProduct?.id) {
+        return;
+      }
+
+      try {
+        const latestProduct = await shoppingService.getProduct(routeProduct.id);
+        setProduct(latestProduct);
+      } catch (error) {
+        // Keep the route product as a fallback if the refresh fails.
+      }
+    };
+
+    fetchLatestProduct();
+  }, [routeProduct?.id]);
 
   useEffect(() => {
     if (product?.id) {
@@ -19,14 +53,80 @@ const ProductDetail = ({ route, navigation }) => {
     }
   }, [dispatch, product?.id]);
 
+  useEffect(() => {
+    if (remainingStock > 0 && quantity > remainingStock) {
+      setQuantity(remainingStock);
+    }
+  }, [quantity, remainingStock]);
+
   const handleAddToCart = () => {
+    if (!product?.id) {
+      return;
+    }
+
+    if (isOutOfStock || remainingStock <= 0) {
+      Alert.alert('Out of stock', 'This product is currently out of stock.');
+      return;
+    }
+
+    if (quantity > remainingStock) {
+      Alert.alert('Stock limit reached', `Only ${remainingStock} more unit${remainingStock === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
+
     dispatch(addToCart({ productId: product.id, quantity }));
     // Item added silently, user can see cart badge update
   };
 
   const handleBuyNow = () => {
+    if (!product?.id) {
+      return;
+    }
+
+    if (isOutOfStock || remainingStock <= 0) {
+      Alert.alert('Out of stock', 'This product is currently out of stock.');
+      return;
+    }
+
+    if (quantity > remainingStock) {
+      Alert.alert('Stock limit reached', `Only ${remainingStock} more unit${remainingStock === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
+
     dispatch(addToCart({ productId: product.id, quantity }));
     navigation.navigate('ShoppingCart');
+  };
+
+  const handleSubmitReview = async () => {
+    const trimmedComment = reviewComment.trim();
+
+    if (!product?.id) {
+      return;
+    }
+
+    if (!trimmedComment || trimmedComment.length < 10) {
+      Alert.alert('Review too short', 'Please write at least 10 characters in your review.');
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      await shoppingService.addProductReview(product.id, {
+        rating: reviewRating,
+        comment: trimmedComment,
+      });
+      setReviewComment('');
+      setReviewRating(5);
+      dispatch(fetchProductReviews(product.id));
+      Alert.alert('Review submitted', 'Your review has been added successfully.');
+    } catch (error) {
+      Alert.alert(
+        'Unable to submit review',
+        error?.data?.comment?.[0] || error?.message || 'Please try again.'
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   const renderStars = () => {
@@ -79,10 +179,15 @@ const ProductDetail = ({ route, navigation }) => {
           <View style={styles.ratingRow}>
             <View style={styles.stars}>{renderStars()}</View>
             <Text style={styles.ratingText}>{product.rating}</Text>
-            <Text style={styles.reviewsText}>({product.reviews} reviews)</Text>
+            <Text style={styles.reviewsText}>({product.reviews_count || product.reviews || 0} reviews)</Text>
           </View>
 
           <Text style={styles.price}>₹{product.price}</Text>
+          <Text style={[styles.stockText, isOutOfStock ? styles.outOfStockText : styles.inStockText]}>
+            {isOutOfStock
+              ? 'Out of Stock'
+              : `${remainingStock} available${quantityInCart > 0 ? ` (${quantityInCart} already in cart)` : ''}`}
+          </Text>
 
           {/* Quantity Selector */}
           <View style={styles.quantitySection}>
@@ -91,13 +196,21 @@ const ProductDetail = ({ route, navigation }) => {
               <TouchableOpacity
                 style={styles.quantityButton}
                 onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={isOutOfStock || remainingStock <= 0}
               >
                 <Feather name="minus" size={18} color="#666666" />
               </TouchableOpacity>
               <Text style={styles.quantityText}>{quantity}</Text>
               <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() => setQuantity(quantity + 1)}
+                style={[styles.quantityButton, (isOutOfStock || quantity >= remainingStock) && styles.quantityButtonDisabled]}
+                onPress={() => {
+                  if (quantity < remainingStock) {
+                    setQuantity(quantity + 1);
+                  } else {
+                    Alert.alert('Stock limit reached', `Only ${remainingStock} more unit${remainingStock === 1 ? '' : 's'} available in stock.`);
+                  }
+                }}
+                disabled={isOutOfStock || remainingStock <= 0}
               >
                 <Feather name="plus" size={18} color="#666666" />
               </TouchableOpacity>
@@ -111,6 +224,46 @@ const ProductDetail = ({ route, navigation }) => {
               {product.description || 'High-quality product for your beloved pet. Made with premium materials and designed for comfort and durability.'}
             </Text>
           </View>
+
+          {canReview && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Write a Review</Text>
+              <View style={styles.reviewStarsRow}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setReviewRating(star)}
+                    style={styles.reviewStarButton}
+                    activeOpacity={0.8}
+                  >
+                    <Feather
+                      name="star"
+                      size={24}
+                      color={star <= reviewRating ? '#FFB800' : '#E0E0E0'}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                style={styles.reviewInput}
+                value={reviewComment}
+                onChangeText={setReviewComment}
+                multiline
+                placeholder="Share your experience with this product"
+                placeholderTextColor="#999999"
+                textAlignVertical="top"
+              />
+              <TouchableOpacity
+                style={[styles.submitReviewButton, submittingReview && styles.submitReviewButtonDisabled]}
+                onPress={handleSubmitReview}
+                disabled={submittingReview}
+              >
+                <Text style={styles.submitReviewText}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Reviews */}
           {reviews.length > 0 && (
@@ -126,12 +279,20 @@ const ProductDetail = ({ route, navigation }) => {
 
       {/* Bottom Buttons */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+        <TouchableOpacity
+          style={[styles.addToCartButton, isOutOfStock && styles.actionButtonDisabled]}
+          onPress={handleAddToCart}
+          disabled={isOutOfStock}
+        >
           <Feather name="shopping-cart" size={20} color="#FF6B9D" />
-          <Text style={styles.addToCartText}>Add to Cart</Text>
+          <Text style={styles.addToCartText}>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buyNowButton} onPress={handleBuyNow}>
-          <Text style={styles.buyNowText}>Buy Now</Text>
+        <TouchableOpacity
+          style={[styles.buyNowButton, isOutOfStock && styles.buyNowButtonDisabled]}
+          onPress={handleBuyNow}
+          disabled={isOutOfStock}
+        >
+          <Text style={styles.buyNowText}>{isOutOfStock ? 'Unavailable' : 'Buy Now'}</Text>
         </TouchableOpacity>
       </View>
       </>
@@ -223,6 +384,17 @@ const styles = StyleSheet.create({
     color: '#FF6B9D',
     marginBottom: 20,
   },
+  stockText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  inStockText: {
+    color: '#2E8B57',
+  },
+  outOfStockText: {
+    color: '#D9534F',
+  },
   quantitySection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -246,6 +418,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  quantityButtonDisabled: {
+    opacity: 0.5,
+  },
   quantityText: {
     fontSize: 18,
     fontWeight: '600',
@@ -267,6 +442,38 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#666666',
     lineHeight: 22,
+  },
+  reviewStarsRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  reviewStarButton: {
+    marginRight: 8,
+  },
+  reviewInput: {
+    minHeight: 110,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 15,
+    color: '#2C2C2C',
+    backgroundColor: '#FAFAFA',
+    marginBottom: 14,
+  },
+  submitReviewButton: {
+    backgroundColor: '#FF6B9D',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  submitReviewButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitReviewText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   bottomBar: {
     flexDirection: 'row',
@@ -292,6 +499,10 @@ const styles = StyleSheet.create({
     color: '#FF6B9D',
     marginLeft: 8,
   },
+  actionButtonDisabled: {
+    borderColor: '#D9D9D9',
+    opacity: 0.7,
+  },
   buyNowButton: {
     flex: 1,
     justifyContent: 'center',
@@ -299,6 +510,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     backgroundColor: '#FF6B9D',
+  },
+  buyNowButtonDisabled: {
+    backgroundColor: '#D9D9D9',
   },
   buyNowText: {
     fontSize: 16,
