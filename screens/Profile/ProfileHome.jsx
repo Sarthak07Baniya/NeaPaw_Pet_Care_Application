@@ -1,11 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutSuccess } from '../../redux/slice/authSlice';
+import { resetEverything } from '../../redux/slice/myPetSlice';
 import { authService } from '../../services/authService';
 
 const ProfileHome = ({ navigation }) => {
+  const dispatch = useDispatch();
   const [darkMode, setDarkMode] = useState(false);
-  const currentUser = { name: 'Pet Parent', email: 'user@example.com' }; // Mock user
+  const authUser = useSelector((state) => state.auth.user);
+  const [currentUser, setCurrentUser] = useState(authUser || null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCurrentUser = async () => {
+      const user = authUser || await authService.getCurrentUser();
+      if (isMounted) {
+        setCurrentUser(user);
+      }
+    };
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authUser]);
+
+  const displayName =
+    currentUser?.full_name ||
+    currentUser?.name ||
+    currentUser?.first_name ||
+    'Pet Parent';
+  const displayEmail = currentUser?.email || 'No email available';
 
   const handleLogout = async () => {
     Alert.alert(
@@ -18,7 +47,8 @@ const ProfileHome = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             await authService.logout();
-            navigation.navigate('authStack', { screen: 'Login' });
+            dispatch(logoutSuccess());
+            dispatch(resetEverything());
           },
         },
       ]
@@ -42,8 +72,8 @@ const ProfileHome = ({ navigation }) => {
         <View style={styles.avatarContainer}>
           <Feather name="user" size={40} color="#FFFFFF" />
         </View>
-        <Text style={styles.name}>{currentUser.name}</Text>
-        <Text style={styles.email}>{currentUser.email}</Text>
+        <Text style={styles.name}>{displayName}</Text>
+        <Text style={styles.email}>{displayEmail}</Text>
       </View>
 
       {/* Dark Mode */}

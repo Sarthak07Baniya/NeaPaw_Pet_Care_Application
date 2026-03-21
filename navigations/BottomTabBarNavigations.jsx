@@ -6,8 +6,8 @@ import {
     CustomMainHeaderRight,
 } from "../components/ui/CustomHeader/CustomMainHeader";
 import Home from "../screens/Home/Home";
-import Menu from "../screens/Menu/Menu";
 import MyPet from "../screens/MyPet/MyPet";
+import ProfileHome from "../screens/Profile/ProfileHome";
 import AdoptionNavigation from "./AdoptionNavigation";
 import ActivitiesNavigation from "./ActivitiesNavigation";
 import HealtNavigations from "./HealthNavigation";
@@ -120,7 +120,7 @@ const BottomTabBarNavigations = ({ navigation }) => {
       />
       <Tab.Screen
         name="Menu"
-        component={Menu}
+        component={ProfileHome}
         options={({ navigation }) => ({
           headerStyle: {
             shadowColor: "transparent", // this covers iOS
