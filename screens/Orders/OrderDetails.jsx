@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { orderStatuses } from '../../utils/appData';
 
 const OrderDetails = ({ route, navigation }) => {
@@ -12,10 +12,69 @@ const OrderDetails = ({ route, navigation }) => {
       .toLowerCase()
       .replace(/[_-]+/g, ' ')
       .trim();
+  const normalizedOrderStatus = normalizeStatus(order.status || 'pending');
+  const canReviewPurchasedItems =
+    orderType === 'shopping' &&
+    normalizedOrderStatus !== 'pending' &&
+    normalizedOrderStatus !== 'cancelled';
   const currentStatusIndex = Math.max(
     0,
-    statuses.findIndex((status) => normalizeStatus(status) === normalizeStatus(order.status || 'pending'))
+    statuses.findIndex((status) => normalizeStatus(status) === normalizedOrderStatus)
   );
+
+  const getProductFromOrderItem = (item) => {
+    const product = item?.product_details || item?.product || null;
+    const productId = product?.id || item?.product_id || item?.product;
+
+    if (!productId) {
+      return null;
+    }
+
+    return {
+      ...product,
+      id: productId,
+      name: product?.name || item?.name || 'Product',
+      price: product?.price || item?.price_at_time || item?.price || 0,
+      images: Array.isArray(product?.images) ? product.images : [],
+    };
+  };
+
+  const handleReviewProduct = (item) => {
+    const product = getProductFromOrderItem(item);
+
+    if (!product?.id) {
+      const fallbackMessage =
+        item?.product_details?.name || item?.name
+          ? `The product data for "${item?.product_details?.name || item?.name}" is incomplete.`
+          : "This order item is missing product data.";
+      Alert.alert("Review unavailable", fallbackMessage);
+      return;
+    }
+
+    const rootNavigation = navigation.getParent?.();
+    const parentNavigation = rootNavigation?.getParent?.();
+
+    if (parentNavigation) {
+      parentNavigation.navigate('Home', {
+        screen: 'ShoppingStack',
+        params: {
+          screen: 'ProductDetail',
+          params: { product, canReview: true },
+        },
+      });
+      return;
+    }
+
+    if (rootNavigation) {
+      rootNavigation.navigate('ShoppingStack', {
+        screen: 'ProductDetail',
+        params: { product, canReview: true },
+      });
+      return;
+    }
+
+    navigation.navigate('ProductDetail', { product, canReview: true });
+  };
 
   const renderStatusTimeline = () => {
     return statuses.map((status, index) => {
@@ -84,11 +143,27 @@ const OrderDetails = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Details</Text>
           {orderType === 'shopping' && (
             <>
+              {canReviewPurchasedItems && (
+                <Text style={styles.reviewHint}>
+                  You can now rate and review the products in this order.
+                </Text>
+              )}
               {orderItems.map((item, index) => (
-                <View key={index} style={styles.itemRow}>
-                  <Text style={styles.itemName}>{item.product_details?.name || item.name || 'Item'}</Text>
-                  <Text style={styles.itemQuantity}>x{item.quantity || 0}</Text>
-                  <Text style={styles.itemPrice}>Rs. {(item.price_at_time || item.price || 0) * (item.quantity || 0)}</Text>
+                <View key={index} style={styles.itemCard}>
+                  <View style={styles.itemRow}>
+                    <Text style={styles.itemName}>{item.product_details?.name || item.name || 'Item'}</Text>
+                    <Text style={styles.itemQuantity}>x{item.quantity || 0}</Text>
+                    <Text style={styles.itemPrice}>Rs. {(item.price_at_time || item.price || 0) * (item.quantity || 0)}</Text>
+                  </View>
+                  {canReviewPurchasedItems ? (
+                    <TouchableOpacity
+                      style={styles.reviewButton}
+                      onPress={() => handleReviewProduct(item)}
+                    >
+                      <Feather name="star" size={16} color="#FF6B9D" />
+                      <Text style={styles.reviewButtonText}>Rate & Review</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
               ))}
               {orderItems.length === 0 && (
@@ -230,8 +305,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
+  },
+  itemCard: {
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
+    paddingVertical: 4,
+  },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginBottom: 10,
+  },
+  reviewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF6B9D',
+  },
+  reviewHint: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 12,
   },
   itemName: {
     flex: 1,
