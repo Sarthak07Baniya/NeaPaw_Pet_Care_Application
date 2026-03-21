@@ -7,9 +7,14 @@ const OrderDetails = ({ route, navigation }) => {
   const orderType = order.order_type || order.type;
   const statuses = orderStatuses[orderType] || ['Pending', 'Confirmed', 'Completed'];
   const orderItems = Array.isArray(order.items) ? order.items : [];
+  const normalizeStatus = (value) =>
+    String(value || '')
+      .toLowerCase()
+      .replace(/[_-]+/g, ' ')
+      .trim();
   const currentStatusIndex = Math.max(
     0,
-    statuses.findIndex((status) => status.toLowerCase() === String(order.status || 'pending').toLowerCase())
+    statuses.findIndex((status) => normalizeStatus(status) === normalizeStatus(order.status || 'pending'))
   );
 
   const renderStatusTimeline = () => {

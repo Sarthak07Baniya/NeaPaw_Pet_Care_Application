@@ -1,12 +1,21 @@
+import { useIsFocused } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
+import { useEffect } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectFilteredOrders, setOrderFilter } from '../../redux/slice/ordersSlice';
+import { fetchOrders, selectFilteredOrders, setOrderFilter } from '../../redux/slice/ordersSlice';
 
 const OrderTracking = ({ navigation }) => {
   const dispatch = useDispatch();
   const orders = useSelector(selectFilteredOrders) || [];
   const selectedFilter = useSelector((state) => state.orders.selectedFilter);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      dispatch(fetchOrders());
+    }
+  }, [dispatch, isFocused]);
 
   const filters = [
     { id: 'all', label: 'All Orders' },
