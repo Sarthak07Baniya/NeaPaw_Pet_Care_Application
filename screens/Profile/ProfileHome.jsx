@@ -55,6 +55,16 @@ const ProfileHome = ({ navigation }) => {
     );
   };
 
+  const handleMenuPress = (item) => {
+    if (item.route !== 'OrdersStack') {
+      return;
+    }
+
+    navigation.navigate('Home', {
+      screen: 'OrdersStack',
+    });
+  };
+
   const menuItems = [
     { id: 1, title: 'Edit Profile', icon: 'edit', route: null },
     { id: 2, title: 'Orders', icon: 'shopping-bag', route: 'OrdersStack' },
@@ -96,12 +106,7 @@ const ProfileHome = ({ navigation }) => {
           <TouchableOpacity
             key={item.id}
             style={styles.menuItem}
-            onPress={() => {
-              if (item.route === 'OrdersStack') {
-                navigation.navigate('OrdersStack');
-              }
-              // Other menu items are placeholders for future implementation
-            }}
+            onPress={() => handleMenuPress(item)}
           >
             <Feather name={item.icon} size={20} color="#666666" />
             <Text style={styles.menuText}>{item.title}</Text>
