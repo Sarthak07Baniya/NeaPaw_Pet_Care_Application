@@ -2,20 +2,56 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 
 const BookingConfirmation = ({ route, navigation }) => {
-  const { bookingId, total } = route.params;
+  const { bookingId, orderId, total } = route.params;
+
+  const navigateToOrders = () => {
+    const rootNavigation = navigation.getParent?.();
+    const tabNavigation = rootNavigation?.getParent?.();
+
+    if (tabNavigation) {
+      tabNavigation.navigate('Home', {
+        screen: 'OrdersStack',
+      });
+      return;
+    }
+
+    if (rootNavigation) {
+      rootNavigation.navigate('OrdersStack');
+      return;
+    }
+
+    navigation.navigate('TreatmentHome');
+  };
 
   const handleContinue = () => {
-    navigation.navigate('bottomNavStack', { screen: 'Home' });
+    navigateToOrders();
   };
 
   const handleRateReview = () => {
-    // Navigate to orders to see booking details
-    navigation.navigate('bottomNavStack', { 
-      screen: 'Home',
-      params: {
-        screen: 'OrdersStack'
-      }
-    });
+    navigateToOrders();
+  };
+
+  const handleSupportChat = () => {
+    const rootNavigation = navigation.getParent?.();
+    const tabNavigation = rootNavigation?.getParent?.();
+
+    if (tabNavigation && orderId) {
+      tabNavigation.navigate('Home', {
+        screen: 'OrdersStack',
+        params: {
+          screen: 'OrderChat',
+          params: {
+            order: {
+              id: orderId,
+              order_type: 'treatment',
+            },
+          },
+        },
+      });
+      return;
+    }
+
+    navigateToOrders();
   };
 
   return (
@@ -46,6 +82,11 @@ const BookingConfirmation = ({ route, navigation }) => {
         <TouchableOpacity style={styles.rateButton} onPress={handleRateReview}>
           <Feather name="star" size={20} color="#FF6B9D" />
           <Text style={styles.rateButtonText}>Rate & Review</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.chatButton} onPress={handleSupportChat}>
+          <Feather name="message-circle" size={20} color="#FFFFFF" />
+          <Text style={styles.chatButtonText}>Chat with Support</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
@@ -134,6 +175,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FF6B9D',
+    marginLeft: 8,
+  },
+  chatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+    backgroundColor: '#4F46E5',
+    marginBottom: 15,
+    width: '100%',
+  },
+  chatButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
     marginLeft: 8,
   },
   continueButton: {
