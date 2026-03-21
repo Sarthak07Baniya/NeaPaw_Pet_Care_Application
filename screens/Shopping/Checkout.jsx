@@ -31,9 +31,19 @@ const Checkout = ({ navigation }) => {
             getAppConfig().catch(() => ({ payment_methods: staticPaymentMethods })),
             shoppingService.getCoupons().catch(() => []) 
         ]);
-        
-        setPaymentMethods(config.payment_methods || staticPaymentMethods);
-        setCoupons(couponsData || []);
+
+        const normalizedCoupons = Array.isArray(couponsData)
+          ? couponsData
+          : Array.isArray(couponsData?.results)
+            ? couponsData.results
+            : staticCoupons;
+
+        const normalizedPaymentMethods = Array.isArray(config?.payment_methods)
+          ? config.payment_methods
+          : staticPaymentMethods;
+
+        setPaymentMethods(normalizedPaymentMethods);
+        setCoupons(normalizedCoupons);
       } catch (error) {
         console.error("Error loading checkout data", error);
         setPaymentMethods(staticPaymentMethods);
@@ -79,8 +89,11 @@ const Checkout = ({ navigation }) => {
       },
       payment_method: selectedPayment,
       coupon_code: appliedCouponData ? appliedCouponData.code : null,
-      order_type: 'product',
+      order_type: 'shopping',
       subtotal: cartTotal,
+      tax,
+      shipping_fee: deliveryFee,
+      discount,
     };
 
     try {
@@ -184,7 +197,7 @@ const Checkout = ({ navigation }) => {
           
           {showCoupons && (
             <View style={styles.couponsContainer}>
-              {coupons.map((coupon) => (
+              {(Array.isArray(coupons) ? coupons : []).map((coupon) => (
                 <CouponCard
                   key={coupon.id || coupon.code}
                   coupon={coupon}
