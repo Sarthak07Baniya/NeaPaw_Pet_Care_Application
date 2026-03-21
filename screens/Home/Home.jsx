@@ -7,6 +7,7 @@ import OfferCard from '../../components/ui/OfferCard/OfferCard';
 import ProductCard from '../../components/ui/ProductCard/ProductCard';
 import ServiceCard from '../../components/ui/ServiceCard/ServiceCard';
 import { fetchOffers, fetchProducts, selectOffers, selectProducts } from '../../redux/slice/shoppingSlice';
+import { resolveMediaUrl } from '../../services/api';
 import { servicesSections } from '../../utils/appData';
 
 const Home = ({ navigation }) => {
@@ -100,10 +101,11 @@ const Home = ({ navigation }) => {
       <OfferCard
         title={item.title}
         description={item.description}
-        discount={item.discount}
+        discount={item.discount_text || item.discount}
         category={item.category}
-        validUntil={item.validUntil}
+        validUntil={item.valid_until || item.validUntil}
         colors={item.colors}
+        imageUrl={resolveMediaUrl(item.image)}
         onPress={() => handleOfferPress(item)}
       />
     </View>

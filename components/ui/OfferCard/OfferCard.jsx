@@ -1,14 +1,16 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.75;
 
-const OfferCard = ({ title, description, discount, category, validUntil, colors, onPress }) => {
+const OfferCard = ({ title, description, discount, category, validUntil, colors, imageUrl, onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
       <LinearGradient colors={colors || ['#667eea', '#764ba2']} style={styles.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.offerImage} resizeMode="cover" />}
+        <View style={styles.overlay} />
         <View style={styles.discountBadge}>
           <Text style={styles.discountText}>{discount}</Text>
         </View>
@@ -49,6 +51,14 @@ const styles = StyleSheet.create({
   gradient: {
     padding: 20,
     minHeight: 180,
+    justifyContent: 'space-between',
+  },
+  offerImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.28)',
   },
   discountBadge: {
     position: 'absolute',
