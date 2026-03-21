@@ -3,13 +3,19 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { orderStatuses } from '../../utils/appData';
 
 const OrderDetails = ({ route, navigation }) => {
-  const { order } = route.params;
-  const statuses = orderStatuses[order.type];
+  const order = route?.params?.order || {};
+  const orderType = order.order_type || order.type;
+  const statuses = orderStatuses[orderType] || ['Pending', 'Confirmed', 'Completed'];
+  const orderItems = Array.isArray(order.items) ? order.items : [];
+  const currentStatusIndex = Math.max(
+    0,
+    statuses.findIndex((status) => status.toLowerCase() === String(order.status || 'pending').toLowerCase())
+  );
 
   const renderStatusTimeline = () => {
     return statuses.map((status, index) => {
-      const isCompleted = index <= order.currentStatusIndex;
-      const isCurrent = index === order.currentStatusIndex;
+      const isCompleted = index <= currentStatusIndex;
+      const isCurrent = index === currentStatusIndex;
 
       return (
         <View key={index} style={styles.timelineItem}>
@@ -46,95 +52,72 @@ const OrderDetails = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Order Info */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Information</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Order ID</Text>
-            <Text style={styles.infoValue}>{order.id}</Text>
+            <Text style={styles.infoValue}>{order.order_number || order.id}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Order Date</Text>
-            <Text style={styles.infoValue}>{order.date}</Text>
+            <Text style={styles.infoValue}>
+              {order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable'}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Total Amount</Text>
-            <Text style={styles.infoValueHighlight}>₹{order.total}</Text>
+            <Text style={styles.infoValueHighlight}>Rs. {order.total || 0}</Text>
           </View>
         </View>
 
-        {/* Status Timeline */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Status</Text>
           <View style={styles.timeline}>{renderStatusTimeline()}</View>
         </View>
 
-        {/* Order Details */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Details</Text>
-          {order.type === 'shopping' && (
+          {orderType === 'shopping' && (
             <>
-              {order.items.map((item, index) => (
+              {orderItems.map((item, index) => (
                 <View key={index} style={styles.itemRow}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemQuantity}>x{item.quantity}</Text>
-                  <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
+                  <Text style={styles.itemName}>{item.product_details?.name || item.name || 'Item'}</Text>
+                  <Text style={styles.itemQuantity}>x{item.quantity || 0}</Text>
+                  <Text style={styles.itemPrice}>Rs. {(item.price_at_time || item.price || 0) * (item.quantity || 0)}</Text>
                 </View>
               ))}
-              {order.trackingNumber && (
-                <View style={styles.trackingInfo}>
-                  <Feather name="truck" size={16} color="#FF6B9D" />
-                  <Text style={styles.trackingText}>Tracking: {order.trackingNumber}</Text>
-                </View>
+              {orderItems.length === 0 && (
+                <Text style={styles.emptyText}>No order items available.</Text>
               )}
             </>
           )}
-          {order.type === 'treatment' && (
+          {orderType === 'treatment' && (
             <>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Pet</Text>
-                <Text style={styles.detailValue}>{order.petName}</Text>
+                <Text style={styles.detailLabel}>Order Type</Text>
+                <Text style={styles.detailValue}>Treatment</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Service</Text>
-                <Text style={styles.detailValue}>{order.service}</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Appointment</Text>
-                <Text style={styles.detailValue}>
-                  {order.appointmentDate} at {order.appointmentTime}
-                </Text>
+                <Text style={styles.detailLabel}>Status</Text>
+                <Text style={styles.detailValue}>{order.status || 'pending'}</Text>
               </View>
             </>
           )}
-          {order.type === 'hostel' && (
+          {orderType === 'hostel' && (
             <>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Pet</Text>
-                <Text style={styles.detailValue}>{order.petName}</Text>
+                <Text style={styles.detailLabel}>Order Type</Text>
+                <Text style={styles.detailValue}>Pet Hostel</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Room</Text>
-                <Text style={styles.detailValue}>{order.room}</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Check-in</Text>
-                <Text style={styles.detailValue}>{order.checkIn}</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Check-out</Text>
-                <Text style={styles.detailValue}>{order.checkOut}</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Duration</Text>
-                <Text style={styles.detailValue}>{order.days} days</Text>
+                <Text style={styles.detailLabel}>Status</Text>
+                <Text style={styles.detailValue}>{order.status || 'pending'}</Text>
               </View>
             </>
           )}
         </View>
       </ScrollView>
 
-      {/* Chat Button */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={styles.chatButton}
@@ -260,19 +243,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#2C2C2C',
   },
-  trackingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 15,
-    padding: 12,
-    backgroundColor: '#FFF5F8',
-    borderRadius: 8,
-    gap: 8,
-  },
-  trackingText: {
+  emptyText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FF6B9D',
+    color: '#888888',
+    marginTop: 8,
   },
   detailItem: {
     flexDirection: 'row',
@@ -289,6 +263,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#2C2C2C',
+    textTransform: 'capitalize',
   },
   bottomBar: {
     padding: 15,

@@ -38,6 +38,7 @@ const initialState = {
   orders: [],
   selectedFilter: 'all',
   trackingInfo: null,
+  chatMessagesByOrder: {},
   loading: false,
   error: null,
 };
@@ -48,6 +49,24 @@ const ordersSlice = createSlice({
   reducers: {
     setOrderFilter: (state, action) => {
       state.selectedFilter = action.payload;
+    },
+    addChatMessage: (state, action) => {
+      const { orderId, message } = action.payload;
+
+      if (!orderId || !message) return;
+
+      const currentMessages = state.chatMessagesByOrder[orderId] || [];
+      currentMessages.push({
+        id: Date.now(),
+        sender: 'user',
+        message,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      });
+
+      state.chatMessagesByOrder[orderId] = currentMessages;
     },
   },
   extraReducers: (builder) => {
@@ -80,10 +99,12 @@ const ordersSlice = createSlice({
   },
 });
 
-export const { setOrderFilter } = ordersSlice.actions;
+export const { setOrderFilter, addChatMessage } = ordersSlice.actions;
 
 export const selectAllOrders = (state) => state.orders.orders;
 export const selectOrderFilter = (state) => state.orders.selectedFilter;
+export const selectChatMessages = (orderId) => (state) =>
+  state.orders.chatMessagesByOrder[orderId] || [];
 export const selectFilteredOrders = createSelector(
   [selectAllOrders, selectOrderFilter],
   (orders, selectedFilter) => {

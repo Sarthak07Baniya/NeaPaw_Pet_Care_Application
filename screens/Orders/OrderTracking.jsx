@@ -1,11 +1,11 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectFilteredOrders, setOrderFilter } from '../../redux/slice/ordersSlice';
 
 const OrderTracking = ({ navigation }) => {
   const dispatch = useDispatch();
-  const orders = useSelector(selectFilteredOrders);
+  const orders = useSelector(selectFilteredOrders) || [];
   const selectedFilter = useSelector((state) => state.orders.selectedFilter);
 
   const filters = [
@@ -17,23 +17,34 @@ const OrderTracking = ({ navigation }) => {
 
   const getOrderIcon = (type) => {
     switch (type) {
-      case 'shopping': return 'shopping-bag';
-      case 'treatment': return 'activity';
-      case 'hostel': return 'home';
-      default: return 'package';
+      case 'shopping':
+        return 'shopping-bag';
+      case 'treatment':
+        return 'activity';
+      case 'hostel':
+        return 'home';
+      default:
+        return 'package';
     }
   };
 
-  const getStatusColor = (type, currentIndex, totalSteps) => {
-    if (currentIndex === totalSteps - 1) return '#4CAF50'; // Completed
-    if (currentIndex > 0) return '#FF6B9D'; // In Progress
-    return '#FFA500'; // Pending
+  const getStatusColor = (status) => {
+    switch (String(status || '').toLowerCase()) {
+      case 'delivered':
+      case 'completed':
+        return '#4CAF50';
+      case 'confirmed':
+      case 'packed':
+      case 'in_transit':
+        return '#FF6B9D';
+      default:
+        return '#FFA500';
+    }
   };
 
   const renderOrderCard = ({ item }) => {
-    const statusSteps = item.type === 'shopping' ? 4 : 
-                       item.type === 'treatment' ? 4 : 4;
-    const statusColor = getStatusColor(item.type, item.currentStatusIndex, statusSteps);
+    const orderType = item.order_type || item.type;
+    const orderItems = Array.isArray(item.items) ? item.items : [];
 
     return (
       <TouchableOpacity
@@ -42,32 +53,30 @@ const OrderTracking = ({ navigation }) => {
       >
         <View style={styles.orderHeader}>
           <View style={styles.orderIconContainer}>
-            <Feather name={getOrderIcon(item.type)} size={24} color="#FF6B9D" />
+            <Feather name={getOrderIcon(orderType)} size={24} color="#FF6B9D" />
           </View>
           <View style={styles.orderInfo}>
-            <Text style={styles.orderId}>{item.id}</Text>
-            <Text style={styles.orderDate}>{item.date}</Text>
+            <Text style={styles.orderId}>{item.order_number || item.id}</Text>
+            <Text style={styles.orderDate}>
+              {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Date unavailable'}
+            </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{item.status}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+            <Text style={styles.statusText}>{item.status || 'pending'}</Text>
           </View>
         </View>
 
         <View style={styles.orderDetails}>
-          {item.type === 'shopping' && (
+          {orderType === 'shopping' && (
             <Text style={styles.orderDescription}>
-              {item.items.length} item(s) • ₹{item.total}
+              {orderItems.length} item(s) • Rs. {item.total}
             </Text>
           )}
-          {item.type === 'treatment' && (
-            <Text style={styles.orderDescription}>
-              {item.petName} • {item.service} • ₹{item.total}
-            </Text>
+          {orderType === 'treatment' && (
+            <Text style={styles.orderDescription}>Treatment booking • Rs. {item.total}</Text>
           )}
-          {item.type === 'hostel' && (
-            <Text style={styles.orderDescription}>
-              {item.petName} • {item.room} • {item.days} days • ₹{item.total}
-            </Text>
+          {orderType === 'hostel' && (
+            <Text style={styles.orderDescription}>Pet hostel booking • Rs. {item.total}</Text>
           )}
         </View>
 
@@ -79,7 +88,10 @@ const OrderTracking = ({ navigation }) => {
             <Feather name="message-circle" size={16} color="#FF6B9D" />
             <Text style={styles.chatButtonText}>Chat</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.detailsButton}>
+          <TouchableOpacity
+            style={styles.detailsButton}
+            onPress={() => navigation.navigate('OrderDetails', { order: item })}
+          >
             <Text style={styles.detailsButtonText}>View Details</Text>
             <Feather name="chevron-right" size={16} color="#666666" />
           </TouchableOpacity>
@@ -90,7 +102,6 @@ const OrderTracking = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Filter Tabs */}
       <View style={styles.filterContainer}>
         {filters.map((filter) => (
           <TouchableOpacity
@@ -113,11 +124,10 @@ const OrderTracking = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Orders List */}
       <FlatList
         data={orders}
         renderItem={renderOrderCard}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id || item.order_number)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
@@ -213,6 +223,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
+    textTransform: 'capitalize',
   },
   orderDetails: {
     marginBottom: 12,
