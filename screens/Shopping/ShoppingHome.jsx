@@ -1,13 +1,15 @@
 import { Feather } from "@expo/vector-icons";
-import { useEffect, useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import FilterChip from '../../components/ui/FilterChip/FilterChip';
 import ProductCard from '../../components/ui/ProductCard/ProductCard';
 import SearchBar from '../../components/ui/SearchBar/SearchBar';
-import { addToCart, selectCartCount } from '../../redux/slice/cartSlice';
+import { addToCart, selectCartCount, selectCartItems } from '../../redux/slice/cartSlice';
 import { fetchProducts, selectProducts, setSearchQuery, setSelectedCategory, setSortOption } from '../../redux/slice/shoppingSlice';
 import { resolveMediaUrl } from '../../services/api';
+import { favouriteService } from '../../services/favouriteService';
 
 
 const ShoppingHome = ({ navigation }) => {
@@ -16,6 +18,7 @@ const ShoppingHome = ({ navigation }) => {
   const selectedCategory = useSelector((state) => state.shopping.selectedCategory);
   const sortOption = useSelector((state) => state.shopping.sortOption);
   const cartCount = useSelector(selectCartCount);
+  const cartItems = useSelector(selectCartItems);
   const allProducts = useSelector(selectProducts);
 
   useEffect(() => {
@@ -23,6 +26,22 @@ const ShoppingHome = ({ navigation }) => {
   }, [dispatch]);
 
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [favouriteIds, setFavouriteIds] = useState([]);
+
+  const loadFavourites = useCallback(async () => {
+    const items = await favouriteService.getFavouriteItems();
+    setFavouriteIds(items.map((item) => item.id));
+  }, []);
+
+  useEffect(() => {
+    loadFavourites();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFavourites();
+    }, [loadFavourites])
+  );
 
   const productCategories = useMemo(() => {
     const categories = ['All', ...new Set(allProducts.map(p => p.category))];
@@ -80,11 +99,32 @@ const ShoppingHome = ({ navigation }) => {
     navigation.navigate('ProductDetail', { product });
   };
 
+  const handleToggleFavourite = async (product) => {
+    const result = await favouriteService.toggleFavourite(product);
+    setFavouriteIds(result.items.map((item) => item.id));
+  };
+
   const handleCartPress = () => {
     navigation.navigate('ShoppingCart');
   };
 
   const handleAddToCart = (product) => {
+    const stockQuantity = Number(product?.stock_quantity || 0);
+    const isOutOfStock = !product?.in_stock || stockQuantity <= 0;
+    const cartQuantity = cartItems
+      .filter((item) => (item?.product?.id || item?.productId) === product?.id)
+      .reduce((total, item) => total + (item?.quantity || 0), 0);
+
+    if (isOutOfStock) {
+      Alert.alert('Out of stock', 'This product is currently out of stock.');
+      return;
+    }
+
+    if (cartQuantity >= stockQuantity) {
+      Alert.alert('Stock limit reached', `Only ${stockQuantity} unit${stockQuantity === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
+
     dispatch(addToCart({ productId: product.id, quantity: 1 }));
   };
 
@@ -106,6 +146,10 @@ const ShoppingHome = ({ navigation }) => {
         reviews={item.reviews_count || item.reviews || 0}
         category={item.category}
         imageUrl={resolveMediaUrl(item.images?.find((image) => image.is_primary)?.image || item.images?.[0]?.image)}
+        isOutOfStock={!item?.in_stock || Number(item?.stock_quantity || 0) <= 0}
+        showFavoriteButton
+        isFavorite={favouriteIds.includes(item.id)}
+        onToggleFavorite={() => handleToggleFavourite(item)}
         onPress={() => handleProductPress(item)}
         onAddToCart={() => handleAddToCart(item)}
       />
@@ -259,8 +303,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 5,
   },
-   filterContainer: {
-    marginTop: 5,
+  filterContainer: {
+    marginTop: 14,
+    maxHeight: 56,
   },
   filterContent: {
     paddingHorizontal: 16,

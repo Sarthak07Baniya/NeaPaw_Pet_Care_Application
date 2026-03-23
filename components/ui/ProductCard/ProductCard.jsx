@@ -4,7 +4,20 @@ import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'rea
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 45) / 2; // 2 columns with padding
 
-const ProductCard = ({ name, price, rating, reviews, category, imageUrl, onPress, onAddToCart }) => {
+const ProductCard = ({
+  name,
+  price,
+  rating,
+  reviews,
+  category,
+  imageUrl,
+  onPress,
+  onAddToCart,
+  isOutOfStock = false,
+  showFavoriteButton = false,
+  isFavorite = false,
+  onToggleFavorite,
+}) => {
   // Render star rating
   const renderStars = () => {
     const stars = [];
@@ -33,6 +46,28 @@ const ProductCard = ({ name, price, rating, reviews, category, imageUrl, onPress
         <View style={styles.categoryBadge}>
           <Text style={styles.categoryText}>{category}</Text>
         </View>
+        {showFavoriteButton && (
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            activeOpacity={0.8}
+            onPress={(e) => {
+              e.stopPropagation();
+              onToggleFavorite && onToggleFavorite();
+            }}
+          >
+            <Feather
+              name="heart"
+              size={16}
+              color={isFavorite ? "#FF6B9D" : "#888888"}
+              style={isFavorite ? styles.favoriteIconActive : null}
+            />
+          </TouchableOpacity>
+        )}
+        {isOutOfStock && (
+          <View style={styles.stockBadge}>
+            <Text style={styles.stockBadgeText}>Out of Stock</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.content}>
@@ -46,8 +81,9 @@ const ProductCard = ({ name, price, rating, reviews, category, imageUrl, onPress
         <View style={styles.footer}>
           <Text style={styles.price}>₹{price}</Text>
           <TouchableOpacity 
-            style={styles.addButton} 
+            style={[styles.addButton, isOutOfStock && styles.addButtonDisabled]} 
             activeOpacity={0.7}
+            disabled={isOutOfStock}
             onPress={(e) => {
               e.stopPropagation();
               onAddToCart && onAddToCart();
@@ -105,6 +141,34 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
+  favoriteButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  favoriteIconActive: {
+    fontWeight: "700",
+  },
+  stockBadge: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    backgroundColor: '#2C2C2C',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  stockBadgeText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
   content: {
     padding: 12,
   },
@@ -145,5 +209,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6B9D',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  addButtonDisabled: {
+    backgroundColor: '#D9D9D9',
   },
 });

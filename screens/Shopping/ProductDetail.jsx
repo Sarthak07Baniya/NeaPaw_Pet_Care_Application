@@ -1,11 +1,13 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import ReviewCard from '../../components/ui/ReviewCard/ReviewCard';
 import { addToCart, selectCartItems } from '../../redux/slice/cartSlice';
 import { fetchProductReviews } from '../../redux/slice/shoppingSlice';
 import { resolveMediaUrl } from '../../services/api';
+import { favouriteService } from '../../services/favouriteService';
 import { shoppingService } from '../../services/shoppingService';
 
 const ProductDetail = ({ route, navigation }) => {
@@ -17,6 +19,7 @@ const ProductDetail = ({ route, navigation }) => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const reviews = useSelector((state) => state.shopping.productReviews) || [];
   const cartItems = useSelector(selectCartItems);
   const stockQuantity = Number(product?.stock_quantity || 0);
@@ -52,6 +55,26 @@ const ProductDetail = ({ route, navigation }) => {
       dispatch(fetchProductReviews(product.id));
     }
   }, [dispatch, product?.id]);
+
+  const syncFavouriteState = useCallback(async () => {
+    if (!product?.id) {
+      setIsFavorite(false);
+      return;
+    }
+
+    const favourite = await favouriteService.isFavourite(product.id);
+    setIsFavorite(favourite);
+  }, [product?.id]);
+
+  useEffect(() => {
+    syncFavouriteState();
+  }, [syncFavouriteState]);
+
+  useFocusEffect(
+    useCallback(() => {
+      syncFavouriteState();
+    }, [syncFavouriteState])
+  );
 
   useEffect(() => {
     if (remainingStock > 0 && quantity > remainingStock) {
@@ -129,6 +152,15 @@ const ProductDetail = ({ route, navigation }) => {
     }
   };
 
+  const handleToggleFavourite = async () => {
+    if (!product) {
+      return;
+    }
+
+    const result = await favouriteService.toggleFavourite(product);
+    setIsFavorite(result.isFavourite);
+  };
+
   const renderStars = () => {
     const stars = [];
     const fullStars = Math.floor(product?.rating || 0);
@@ -169,6 +201,9 @@ const ProductDetail = ({ route, navigation }) => {
           ) : (
             <Feather name="package" size={100} color="#CCCCCC" />
           )}
+          <TouchableOpacity style={styles.favoriteButton} onPress={handleToggleFavourite} activeOpacity={0.85}>
+            <Feather name="heart" size={22} color={isFavorite ? "#FF6B9D" : "#999999"} />
+          </TouchableOpacity>
         </View>
 
         {/* Product Info */}
@@ -318,6 +353,17 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: '100%',
+  },
+  favoriteButton: {
+    position: "absolute",
+    top: 18,
+    right: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   infoContainer: {
     padding: 20,
