@@ -1,20 +1,25 @@
+import { useIsFocused } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import FilterChip from '../../components/ui/FilterChip/FilterChip';
 import SearchBar from '../../components/ui/SearchBar/SearchBar';
 import { fetchAdoptionPets, selectAdoptionPets } from '../../redux/slice/adoptionSlice';
+import { resolveMediaUrl } from '../../services/api';
 
 const AdoptionHome = ({ navigation }) => {
   const dispatch = useDispatch();
+  const isFocused = useIsFocused();
   const adoptablePets = useSelector(selectAdoptionPets);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('All');
 
   useEffect(() => {
-    dispatch(fetchAdoptionPets());
-  }, [dispatch]);
+    if (isFocused) {
+      dispatch(fetchAdoptionPets());
+    }
+  }, [dispatch, isFocused]);
 
   const petTypes = useMemo(() => {
     const types = ['All', ...new Set((adoptablePets || []).map(p => p.pet_type))];
@@ -44,8 +49,12 @@ const AdoptionHome = ({ navigation }) => {
       onPress={() => navigation.navigate('PetDetails', { pet: item })}
     >
       <View style={styles.imageContainer}>
-        {item.photo ? (
-          <Feather name="image" size={60} color="#CCCCCC" /> // Should ideally use Image component with item.photo
+        {resolveMediaUrl(item.photo) ? (
+          <Image
+            source={{ uri: resolveMediaUrl(item.photo) }}
+            style={styles.petImage}
+            resizeMode="cover"
+          />
         ) : (
           <Feather name="image" size={60} color="#CCCCCC" />
         )}
@@ -199,6 +208,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  petImage: {
+    width: '100%',
+    height: '100%',
   },
   petInfo: {
     padding: 12,

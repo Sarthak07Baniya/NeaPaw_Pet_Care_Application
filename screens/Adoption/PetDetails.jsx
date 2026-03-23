@@ -1,8 +1,10 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
+import { resolveMediaUrl } from '../../services/api';
 
 const PetDetails = ({ route, navigation }) => {
   const pet = route?.params?.pet;
+  const photoUrl = resolveMediaUrl(pet?.photo);
 
   const renderStars = () => {
     const stars = [];
@@ -35,7 +37,11 @@ const PetDetails = ({ route, navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Pet Image */}
         <View style={styles.imageContainer}>
-          <Feather name="image" size={100} color="#CCCCCC" />
+          {photoUrl ? (
+            <Image source={{ uri: photoUrl }} style={styles.petImage} resizeMode="cover" />
+          ) : (
+            <Feather name="image" size={100} color="#CCCCCC" />
+          )}
         </View>
 
         {/* Pet Info */}
@@ -121,6 +127,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  petImage: {
+    width: '100%',
+    height: '100%',
   },
   infoContainer: {
     padding: 20,
