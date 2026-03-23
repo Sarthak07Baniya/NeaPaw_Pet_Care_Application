@@ -1,5 +1,6 @@
+import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 import { useDispatch } from 'react-redux';
 import { submitAdoptionApplication } from '../../redux/slice/adoptionSlice';
@@ -11,18 +12,65 @@ const AdoptionForm = ({ route, navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [addressLine1, setAddressLine1] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [previousPets, setPreviousPets] = useState('');
   const [reason, setReason] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [kycDocument, setKycDocument] = useState(null);
+  const [userPhoto, setUserPhoto] = useState(null);
+  const [policeReport, setPoliceReport] = useState(null);
+
+  const pickImage = async (setter, label) => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permission needed', `Please allow photo library access to upload ${label}.`);
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.length) {
+      setter(result.assets[0]);
+    }
+  };
+
+  const appendImageField = (formData, fieldName, asset) => {
+    if (!asset?.uri) {
+      return;
+    }
+
+    const filename = asset.fileName || `${fieldName}.jpg`;
+    const extension = filename.split('.').pop()?.toLowerCase();
+    const mimeType =
+      asset.mimeType ||
+      (extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg');
+
+    formData.append(fieldName, {
+      uri: asset.uri,
+      name: filename,
+      type: mimeType,
+    });
+  };
 
   const handleSubmit = () => {
     if (!pet?.id) {
       Alert.alert('Pet Not Found', 'Please select a pet again before submitting.');
       return;
     }
-    if (!name || !email || !phone || !address || !previousPets || !reason) {
+    if (!name || !email || !phone || !addressLine1 || !city || !state || !postalCode || !previousPets || !reason) {
       Alert.alert('Missing Information', 'Please fill in all fields');
+      return;
+    }
+    if (!kycDocument || !userPhoto || !policeReport) {
+      Alert.alert('Missing Documents', 'Please upload your KYC document, photo, and police report.');
       return;
     }
     if (!agreedToTerms) {
@@ -30,15 +78,21 @@ const AdoptionForm = ({ route, navigation }) => {
       return;
     }
 
-    const applicationData = {
-      pet: pet.id,
-      full_name: name,
-      email,
-      phone,
-      address,
-      previous_pets_experience: previousPets,
-      reason_for_adoption: reason,
-    };
+    const applicationData = new FormData();
+    applicationData.append('pet', String(pet.id));
+    applicationData.append('full_name', name.trim());
+    applicationData.append('email', email.trim());
+    applicationData.append('phone', phone.trim());
+    applicationData.append('address_line1', addressLine1.trim());
+    applicationData.append('city', city.trim());
+    applicationData.append('state', state.trim());
+    applicationData.append('postal_code', postalCode.trim());
+    applicationData.append('previously_owned_pets', 'true');
+    applicationData.append('previous_pet_details', previousPets.trim());
+    applicationData.append('reason_for_adoption', reason.trim());
+    appendImageField(applicationData, 'kyc_document', kycDocument);
+    appendImageField(applicationData, 'user_photo', userPhoto);
+    appendImageField(applicationData, 'police_report', policeReport);
 
     dispatch(submitAdoptionApplication(applicationData))
       .unwrap()
@@ -49,7 +103,35 @@ const AdoptionForm = ({ route, navigation }) => {
           [
             {
               text: 'OK',
-              onPress: () => navigation.navigate('Home'),
+              onPress: () => {
+                const rootNavigation = navigation.getParent?.();
+                const tabNavigation = rootNavigation?.getParent?.();
+
+                if (tabNavigation) {
+                  tabNavigation.navigate('Home', {
+                    screen: 'OrdersStack',
+                    params: {
+                      screen: 'OrderTracking',
+                      params: {
+                        filterType: 'adoption',
+                      },
+                    },
+                  });
+                  return;
+                }
+
+                if (rootNavigation) {
+                  rootNavigation.navigate('OrdersStack', {
+                    screen: 'OrderTracking',
+                    params: {
+                      filterType: 'adoption',
+                    },
+                  });
+                  return;
+                }
+
+                navigation.navigate('Home');
+              },
             },
           ]
         );
@@ -106,12 +188,93 @@ const AdoptionForm = ({ route, navigation }) => {
           />
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Living Address *"
-            value={address}
-            onChangeText={setAddress}
+            placeholder="Address Line 1 *"
+            value={addressLine1}
+            onChangeText={setAddressLine1}
             multiline
             numberOfLines={3}
           />
+          <TextInput
+            style={styles.input}
+            placeholder="City *"
+            value={city}
+            onChangeText={setCity}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="State *"
+            value={state}
+            onChangeText={setState}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Postal Code *"
+            value={postalCode}
+            onChangeText={setPostalCode}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>KYC Documents</Text>
+          <TouchableOpacity
+            style={styles.uploadCard}
+            onPress={() => pickImage(setKycDocument, 'KYC document')}
+          >
+            <View style={styles.uploadPreview}>
+              {kycDocument?.uri ? (
+                <Image source={{ uri: kycDocument.uri }} style={styles.uploadImage} />
+              ) : (
+                <Feather name="file-text" size={28} color="#FF6B9D" />
+              )}
+            </View>
+            <View style={styles.uploadInfo}>
+              <Text style={styles.uploadTitle}>KYC Document *</Text>
+              <Text style={styles.uploadSubtitle}>
+                {kycDocument?.fileName || 'Upload citizenship, passport, or national ID'}
+              </Text>
+            </View>
+            <Feather name="upload" size={20} color="#888888" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.uploadCard}
+            onPress={() => pickImage(setUserPhoto, 'photo')}
+          >
+            <View style={styles.uploadPreview}>
+              {userPhoto?.uri ? (
+                <Image source={{ uri: userPhoto.uri }} style={styles.uploadImage} />
+              ) : (
+                <Feather name="camera" size={28} color="#FF6B9D" />
+              )}
+            </View>
+            <View style={styles.uploadInfo}>
+              <Text style={styles.uploadTitle}>Upload Photo *</Text>
+              <Text style={styles.uploadSubtitle}>
+                {userPhoto?.fileName || 'Upload a recent clear photo'}
+              </Text>
+            </View>
+            <Feather name="upload" size={20} color="#888888" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.uploadCard}
+            onPress={() => pickImage(setPoliceReport, 'police report')}
+          >
+            <View style={styles.uploadPreview}>
+              {policeReport?.uri ? (
+                <Image source={{ uri: policeReport.uri }} style={styles.uploadImage} />
+              ) : (
+                <Feather name="shield" size={28} color="#FF6B9D" />
+              )}
+            </View>
+            <View style={styles.uploadInfo}>
+              <Text style={styles.uploadTitle}>Police Report *</Text>
+              <Text style={styles.uploadSubtitle}>
+                {policeReport?.fileName || 'Upload your police report image'}
+              </Text>
+            </View>
+            <Feather name="upload" size={20} color="#888888" />
+          </TouchableOpacity>
         </View>
 
         {/* Adoption Questions */}
@@ -258,6 +421,42 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  uploadCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    gap: 12,
+  },
+  uploadPreview: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: '#FFF5F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  uploadImage: {
+    width: '100%',
+    height: '100%',
+  },
+  uploadInfo: {
+    flex: 1,
+  },
+  uploadTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2C2C2C',
+    marginBottom: 4,
+  },
+  uploadSubtitle: {
+    fontSize: 13,
+    color: '#888888',
+    lineHeight: 18,
   },
   termsRow: {
     flexDirection: 'row',
