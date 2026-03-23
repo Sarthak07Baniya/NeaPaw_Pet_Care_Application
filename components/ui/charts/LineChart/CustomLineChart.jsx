@@ -28,7 +28,15 @@ const CustomLineChart = ({ title }) => {
         .then((res) => {
           const allMontData = [0, 0, 0, 0, 0, 0];
           res.forEach((element) => {
-            const date = moment(element.date).format("MMM");
+            const parsedDate = moment(
+              element.date,
+              [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"],
+              true
+            );
+            if (!parsedDate.isValid()) {
+              return;
+            }
+            const date = parsedDate.format("MMM");
             const index = lastSixMont.indexOf(date);
             if (index !== -1) {
               allMontData[index]++;

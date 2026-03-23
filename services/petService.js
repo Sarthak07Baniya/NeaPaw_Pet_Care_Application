@@ -1,17 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "./api";
 import { addWeight, deleteWeight, getAllWeightbyPetId } from "../database/tables/weight";
-
-const LOCAL_VACCINES_KEY = "neapaw_local_vaccines";
-
-const readLocalVaccines = async () => {
-  const stored = await AsyncStorage.getItem(LOCAL_VACCINES_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const writeLocalVaccines = async (vaccines) => {
-  await AsyncStorage.setItem(LOCAL_VACCINES_KEY, JSON.stringify(vaccines));
-};
+import { addAVaccine, deleteVaccine as deleteLocalVaccine, getAllVaccinebyPetId } from "../database/tables/vaccine";
 
 export const petService = {
   getPets: async () => {
@@ -138,27 +127,23 @@ export const petService = {
     }
   },
 
-  // Vaccines are stored locally because the current backend does not expose vaccine endpoints.
   addVaccine: async (vaccineData) => {
-    const currentVaccines = await readLocalVaccines();
-    const localRecord = {
-      ...vaccineData,
-      id: Date.now(),
-      isLocalOnly: true,
+    const localVaccine = {
+      petId: vaccineData.petId ?? vaccineData.pet,
+      name: vaccineData.name,
+      date: vaccineData.date,
+      note: vaccineData.note,
     };
-    const updatedVaccines = [...currentVaccines, localRecord];
-    await writeLocalVaccines(updatedVaccines);
-    return localRecord;
+    const id = await addAVaccine(localVaccine);
+    return { ...localVaccine, id };
   },
 
-  getVaccines: async () => {
-    return await readLocalVaccines();
+  getVaccines: async (petId) => {
+    return await getAllVaccinebyPetId(petId);
   },
 
   deleteVaccine: async (id) => {
-    const currentVaccines = await readLocalVaccines();
-    const updatedVaccines = currentVaccines.filter((item) => item.id !== id);
-    await writeLocalVaccines(updatedVaccines);
+    await deleteLocalVaccine(id);
     return true;
   },
 

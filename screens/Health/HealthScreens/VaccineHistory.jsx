@@ -12,22 +12,28 @@ import {
 } from "react-native";
 
 import { petService } from "../../../services/petService";
+import CustomLineChart from "../../../components/ui/charts/LineChart/CustomLineChart";
+import { useSelector } from "react-redux";
 
 const VaccineHistory = () => {
   const [vaccineData, setVaccineData] = useState([]);
   const isFocused = useIsFocused();
+  const currentPetId = useSelector((state) => state.myPet.currentPetId);
 
   useEffect(() => {
     if (isFocused) {
       loadVaccines();
     }
-  }, [isFocused]);
+  }, [isFocused, currentPetId]);
 
   const loadVaccines = () => {
     petService
-      .getVaccines()
+      .getVaccines(currentPetId)
       .then((vaccines) => {
-        const sortedVaccines = [...vaccines].sort((a, b) => {
+        const validVaccines = vaccines.filter((item) =>
+          moment(item.date, [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"], true).isValid()
+        );
+        const sortedVaccines = [...validVaccines].sort((a, b) => {
           return new Date(a.date) - new Date(b.date);
         });
 
@@ -76,6 +82,7 @@ const VaccineHistory = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>Pet Vaccine History</Text>
+      <CustomLineChart title="Vaccine History Stats" />
       <FlatList
         data={vaccineData}
         contentContainerStyle={styles.listContent}
