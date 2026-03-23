@@ -88,7 +88,7 @@ const Food = ({ navigation }) => {
             style={[
               styles.image,
               {
-                left: spicie === "cat" ? -150 : 17,
+                left: spicie === "cat" ? -170 : 17,
               },
             ]}
             source={spicie === "dog" ? food : cat2}
