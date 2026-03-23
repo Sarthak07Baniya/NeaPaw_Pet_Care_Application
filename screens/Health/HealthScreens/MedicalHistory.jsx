@@ -10,24 +10,29 @@ import {
   TouchableHighlight,
   View,
 } from "react-native";
+import { useSelector } from "react-redux";
 
 import { petService } from "../../../services/petService";
 
 const MedicalHistory = () => {
   const [medicalData, setMedicalData] = useState([]);
   const isFocused = useIsFocused();
+  const currentPetId = useSelector((state) => state.myPet.currentPetId);
 
   useEffect(() => {
     if (isFocused) {
       loadMedicalHistory();
     }
-  }, [isFocused]);
+  }, [isFocused, currentPetId]);
 
   const loadMedicalHistory = () => {
     petService
-      .getMedicalRecords()
+      .getMedicalRecords(currentPetId)
       .then((records) => {
-        const sortedRecords = [...records].sort((a, b) => {
+        const validRecords = records.filter((item) =>
+          moment(item.date, [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"], true).isValid()
+        );
+        const sortedRecords = [...validRecords].sort((a, b) => {
           return new Date(a.date) - new Date(b.date);
         });
 

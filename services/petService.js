@@ -1,6 +1,7 @@
 import api from "./api";
 import { addWeight, deleteWeight, getAllWeightbyPetId } from "../database/tables/weight";
 import { addAVaccine, deleteVaccine as deleteLocalVaccine, getAllVaccinebyPetId } from "../database/tables/vaccine";
+import { addAMedical, deleteMedical as deleteLocalMedical, getAllMedicalbyPetId } from "../database/tables/medical";
 
 export const petService = {
   getPets: async () => {
@@ -150,18 +151,24 @@ export const petService = {
   // Medical Records
   addMedicalRecord: async (medicalData) => {
     try {
-      const response = await api.post('pets/medical/', medicalData);
-      return response.data;
+      const localMedical = {
+        petId: medicalData.petId ?? medicalData.pet,
+        condition: medicalData.condition,
+        date: medicalData.date,
+        note: medicalData.note,
+        treatment: medicalData.treatment,
+      };
+      const id = await addAMedical(localMedical);
+      return { ...localMedical, id };
     } catch (error) {
       console.error("Add medical record error:", error);
       throw error;
     }
   },
 
-  getMedicalRecords: async () => {
+  getMedicalRecords: async (petId) => {
     try {
-      const response = await api.get('pets/medical/');
-      return response.data;
+      return await getAllMedicalbyPetId(petId);
     } catch (error) {
       console.error("Get medical records error:", error);
       throw error;
@@ -170,7 +177,7 @@ export const petService = {
 
   deleteMedicalRecord: async (id) => {
     try {
-      await api.delete(`pets/medical/${id}/`);
+      await deleteLocalMedical(id);
       return true;
     } catch (error) {
       console.error("Delete medical record error:", error);

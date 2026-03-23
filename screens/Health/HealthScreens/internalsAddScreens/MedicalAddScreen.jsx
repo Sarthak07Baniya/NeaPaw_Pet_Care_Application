@@ -28,40 +28,39 @@ const MedicalAddScreen = ({ navigation }) => {
   const medicalDataHandler = () => {
     if (illness === "" || startTime === "" || endTime === "") {
       return Alert.alert("oops...", "Please fill all the fields");
-    } else if (startTime > endTime) {
-      return Alert.alert("oops...", "Start date should be less than end date");
-    } else if (startTime === endTime) {
-      return Alert.alert(
-        "oops...",
-        "Start date and end date should not be same"
-      );
     } else if (illness > 20) {
       return Alert.alert(
         "oops...",
         "Please enter illness name less than 20 characters"
       );
     }
-    const onlyDateStart = startTime.split(" ");
-    const onlyDateEnd = endTime.split(" ");
-    if (onlyDateStart > onlyDateEnd) {
+    const normalizedStart = moment(
+      startTime,
+      ["YYYY/MM/DD", "YYYY-MM-DD", moment.ISO_8601],
+      true
+    );
+    const normalizedEnd = moment(
+      endTime,
+      ["YYYY/MM/DD", "YYYY-MM-DD", moment.ISO_8601],
+      true
+    );
+
+    if (!normalizedStart.isValid() || !normalizedEnd.isValid()) {
+      return Alert.alert("oops...", "Please select valid dates");
+    }
+
+    if (normalizedStart.isAfter(normalizedEnd, "day")) {
       return Alert.alert("oops...", "Start date should be less than end date");
     }
-    const timeStart = onlyDateStart[1] + ":00";
-    const timeEnd = onlyDateEnd[1] + ":00";
-    if (timeStart === "00:00:00" || timeEnd === "00:00:00") {
-      return alert("Please select a timeother than 00:00:00");
+    if (normalizedStart.isSame(normalizedEnd, "day")) {
+      return Alert.alert(
+        "oops...",
+        "Start date and end date should not be same"
+      );
     }
-    const datesStart = moment(new Date(onlyDateStart[0])).format("YYYY-MM-DD");
-    const datesEnd = moment(new Date(onlyDateEnd[0])).format("YYYY-MM-DD");
 
-    const formattedDateStringStart = datesStart + "T" + timeStart;
-    const formattedDateStringEnd = datesEnd + "T" + timeEnd;
-
-    const todayDateStringMoment = moment()
-      .format("YYYY-MM-DD HH:mm:ss")
-      .split(" ");
-    const todayDateString =
-      todayDateStringMoment[0] + "T" + todayDateStringMoment[1];
+    const formattedDateStringStart = `${normalizedStart.format("YYYY-MM-DD")}T00:00:00`;
+    const formattedDateStringEnd = `${normalizedEnd.format("YYYY-MM-DD")}T00:00:00`;
 
     const medicalData = {
       pet: currentPetId,
