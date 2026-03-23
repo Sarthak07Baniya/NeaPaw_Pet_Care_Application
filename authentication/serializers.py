@@ -27,7 +27,16 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.get_full_name().strip()
 
     def update(self, instance, validated_data):
-        for field in ('email', 'username', 'first_name', 'last_name', 'contact_number', 'dark_mode', 'notifications_enabled'):
+        for field in (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'contact_number',
+            'profile_picture',
+            'dark_mode',
+            'notifications_enabled',
+        ):
             if field in validated_data:
                 setattr(instance, field, validated_data[field])
         instance.save()
