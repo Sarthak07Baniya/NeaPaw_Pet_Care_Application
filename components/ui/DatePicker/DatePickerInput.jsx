@@ -63,6 +63,7 @@ const DatePickerInput = ({
           <View style={styles.modalView}>
             <DatePicker
               mode="calendar"
+              isGregorian={true}
               selected={selectedDate}
               current={
                 selectedDate

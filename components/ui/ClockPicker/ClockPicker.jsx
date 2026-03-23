@@ -39,7 +39,9 @@ const ClockPicker = ({ placeHolder, buttonPlaceHolder, onChange }) => {
             <View style={styles.datePickerContainer}>
               <DatePicker
                 mode="time"
+                isGregorian={true}
                 minuteInterval={3}
+                locale="en"
                 onTimeChange={(selectedTime) => {
                   setTime(selectedTime);
                   setModalVisible(!modalVisible);
