@@ -28,7 +28,10 @@ const WeightHistory = ({ route, navigation }) => {
   const loadWeightHistory = () => {
       petService.getWeightHistory(currentPetId)
         .then((weight) => {
-          const sortedWeight = weight.sort((a, b) => {
+          const validWeight = weight.filter((item) =>
+            moment(item.date, [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"], true).isValid()
+          );
+          const sortedWeight = validWeight.sort((a, b) => {
             return new Date(a.date) - new Date(b.date);
           });
           const data = sortedWeight.map((item) => {

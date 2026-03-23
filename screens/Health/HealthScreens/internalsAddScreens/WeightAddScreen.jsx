@@ -28,17 +28,11 @@ const WeightAddScreen = ({ navigation }) => {
     } else if (weitgh > 100 || weitgh < 0) {
       return Alert.alert("oops...", "Please enter a valid weight");
     }
-    const onlyDate = date.split(" ");
-    const time = onlyDate[1] + ":00";
-    if (time === "00:00:00") {
-      return Alert.alert("oops...", "Please select a timeother than 00:00:00");
+    const normalizedDate = moment(date, ["YYYY/MM/DD", "YYYY-MM-DD", moment.ISO_8601], true);
+    if (!normalizedDate.isValid()) {
+      return Alert.alert("oops...", "Please select a valid date");
     }
-    const datui = new Date(onlyDate[0]);
-    const dates = moment(datui).format("YYYY-MM-DD");
-    const formattedDateString = dates + "T" + time;
-
-    const today = new Date().toISOString().split("T")[0];
-  
+    const formattedDateString = `${normalizedDate.format("YYYY-MM-DD")}T00:00:00`;
 
     const weightData = {
       pet: currentPetId,
