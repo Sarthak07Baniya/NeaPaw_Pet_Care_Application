@@ -5,12 +5,33 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'full_name', 'contact_number', 'profile_picture', 'dark_mode', 'notifications_enabled')
-        read_only_fields = ('id', 'email')
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'full_name',
+            'contact_number',
+            'profile_picture',
+            'dark_mode',
+            'notifications_enabled',
+        )
+        read_only_fields = ('id',)
 
-    full_name = serializers.CharField(source='get_full_name', read_only=True)
+    def get_full_name(self, obj):
+        return obj.get_full_name().strip()
+
+    def update(self, instance, validated_data):
+        for field in ('email', 'username', 'first_name', 'last_name', 'contact_number', 'dark_mode', 'notifications_enabled'):
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+        instance.save()
+        return instance
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
