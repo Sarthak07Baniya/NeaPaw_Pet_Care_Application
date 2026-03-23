@@ -1,6 +1,7 @@
+import * as ImagePicker from 'expo-image-picker';
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { createHostelBooking, resetHostelSelection } from '../../redux/slice/hostelSlice';
 import { getAppConfig } from '../../services/api';
@@ -22,6 +23,8 @@ const HostelCheckout = ({ navigation }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
+  const [ownerPhoto, setOwnerPhoto] = useState(null);
+  const [policeReport, setPoliceReport] = useState(null);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -34,6 +37,43 @@ const HostelCheckout = ({ navigation }) => {
     };
     fetchConfig();
   }, []);
+
+  const pickImage = async (setter, label) => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permission needed', `Please allow photo library access to upload ${label}.`);
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.length) {
+      setter(result.assets[0]);
+    }
+  };
+
+  const appendImageField = (formData, fieldName, asset) => {
+    if (!asset?.uri) {
+      return;
+    }
+
+    const filename = asset.fileName || `${fieldName}.jpg`;
+    const extension = filename.split('.').pop()?.toLowerCase();
+    const mimeType =
+      asset.mimeType ||
+      (extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg');
+
+    formData.append(fieldName, {
+      uri: asset.uri,
+      name: filename,
+      type: mimeType,
+    });
+  };
 
   const calculateDays = () => {
     if (!checkInDate || !checkOutDate) return 0;
@@ -59,6 +99,9 @@ const HostelCheckout = ({ navigation }) => {
         screen: 'OrdersStack',
         params: {
           screen: 'OrderTracking',
+          params: {
+            filterType: 'hostel',
+          },
         },
       });
       return;
@@ -67,6 +110,9 @@ const HostelCheckout = ({ navigation }) => {
     if (rootNavigation) {
       rootNavigation.navigate('OrdersStack', {
         screen: 'OrderTracking',
+        params: {
+          filterType: 'hostel',
+        },
       });
       return;
     }
@@ -87,25 +133,30 @@ const HostelCheckout = ({ navigation }) => {
       Alert.alert('Payment Method', 'Please select a payment method');
       return;
     }
+    if (!ownerPhoto || !policeReport) {
+      Alert.alert('Missing Documents', 'Please upload your photo and police report.');
+      return;
+    }
     if (!agreedToTerms) {
       Alert.alert('Terms & Conditions', 'Please agree to the terms and conditions');
       return;
     }
 
-    const bookingData = {
-      pet: selectedPet.id,
-      room: selectedRoom.id,
-      check_in_date: checkInDate,
-      check_out_date: checkOutDate,
-      service_type: selectedServiceType.id === 'self' ? 'store_visit' : selectedServiceType.id,
-      allergies: petDetails.allergies,
-      health_conditions: petDetails.allergies,
-      diet_type: (petDetails.diet || 'Carnivore').toLowerCase().replace(/\s+/g, '_'),
-      pet_nature: petDetails.nature || 'Friendly',
-      vaccination_status: petDetails.vaccinated ? 'up_to_date' : 'not_updated',
-      communicable_disease: petDetails.communicableDisease,
-      total_price: total,
-    };
+    const bookingData = new FormData();
+    bookingData.append('pet', String(selectedPet.id));
+    bookingData.append('room', String(selectedRoom.id));
+    bookingData.append('check_in_date', checkInDate);
+    bookingData.append('check_out_date', checkOutDate);
+    bookingData.append('service_type', selectedServiceType.id === 'self' ? 'store_visit' : selectedServiceType.id);
+    bookingData.append('allergies', petDetails.allergies || '');
+    bookingData.append('health_conditions', petDetails.allergies || '');
+    bookingData.append('diet_type', (petDetails.diet || 'Carnivore').toLowerCase().replace(/\s+/g, '_'));
+    bookingData.append('pet_nature', petDetails.nature || 'Friendly');
+    bookingData.append('vaccination_status', petDetails.vaccinated ? 'up_to_date' : 'not_updated');
+    bookingData.append('communicable_disease', petDetails.communicableDisease ? 'true' : 'false');
+    bookingData.append('total_price', String(total));
+    appendImageField(bookingData, 'owner_photo', ownerPhoto);
+    appendImageField(bookingData, 'police_report', policeReport);
 
     dispatch(createHostelBooking(bookingData))
       .unwrap()
@@ -196,6 +247,47 @@ const HostelCheckout = ({ navigation }) => {
             multiline
             numberOfLines={3}
           />
+
+          <Text style={styles.sectionTitle}>KYC Documents *</Text>
+          <TouchableOpacity
+            style={styles.uploadCard}
+            onPress={() => pickImage(setOwnerPhoto, 'your photo')}
+          >
+            <View style={styles.uploadPreview}>
+              {ownerPhoto?.uri ? (
+                <Image source={{ uri: ownerPhoto.uri }} style={styles.uploadImage} />
+              ) : (
+                <Feather name="camera" size={26} color="#FF6B9D" />
+              )}
+            </View>
+            <View style={styles.uploadInfo}>
+              <Text style={styles.uploadTitle}>Upload Photo *</Text>
+              <Text style={styles.uploadSubtitle}>
+                {ownerPhoto?.fileName || 'Upload your recent clear photo'}
+              </Text>
+            </View>
+            <Feather name="upload" size={20} color="#888888" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.uploadCard}
+            onPress={() => pickImage(setPoliceReport, 'police report')}
+          >
+            <View style={styles.uploadPreview}>
+              {policeReport?.uri ? (
+                <Image source={{ uri: policeReport.uri }} style={styles.uploadImage} />
+              ) : (
+                <Feather name="shield" size={26} color="#FF6B9D" />
+              )}
+            </View>
+            <View style={styles.uploadInfo}>
+              <Text style={styles.uploadTitle}>Police Report *</Text>
+              <Text style={styles.uploadSubtitle}>
+                {policeReport?.fileName || 'Upload police report image'}
+              </Text>
+            </View>
+            <Feather name="upload" size={20} color="#888888" />
+          </TouchableOpacity>
         </View>
 
         {/* Payment Method */}
@@ -325,6 +417,42 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  uploadCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    gap: 12,
+  },
+  uploadPreview: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: '#FFF5F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  uploadImage: {
+    width: '100%',
+    height: '100%',
+  },
+  uploadInfo: {
+    flex: 1,
+  },
+  uploadTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2C2C2C',
+    marginBottom: 4,
+  },
+  uploadSubtitle: {
+    fontSize: 13,
+    color: '#888888',
+    lineHeight: 18,
   },
   paymentOption: {
     flexDirection: 'row',

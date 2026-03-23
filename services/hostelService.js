@@ -13,7 +13,12 @@ export const hostelService = {
 
   createBooking: async (bookingData) => {
     try {
-      const response = await api.post('hostel/bookings/', bookingData);
+      const isFormData = typeof FormData !== 'undefined' && bookingData instanceof FormData;
+      const response = await api.post(
+        'hostel/bookings/',
+        bookingData,
+        isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+      );
       return response.data;
     } catch (error) {
       console.error("Create hostel booking error:", error);
@@ -39,6 +44,16 @@ export const hostelService = {
       return response.data;
     } catch (error) {
       console.error("Check availability error:", error);
+      throw error;
+    }
+  },
+
+  addReview: async (bookingId, reviewData) => {
+    try {
+      const response = await api.post(`hostel/bookings/${bookingId}/review/`, reviewData);
+      return response.data;
+    } catch (error) {
+      console.error("Create hostel review error:", error);
       throw error;
     }
   }
