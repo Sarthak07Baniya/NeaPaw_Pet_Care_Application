@@ -10,13 +10,7 @@ const Stopwatch = ({ start, reset, options, getTime, laps }) => {
     if (start && !previousStartRef.current) {
       // Start the stopwatch
       intervalRef.current = setInterval(() => {
-        setTime((prevTime) => {
-          const newTime = prevTime + 10; // Update every 10ms
-          if (getTime) {
-            getTime(formatTime(newTime));
-          }
-          return newTime;
-        });
+        setTime((prevTime) => prevTime + 10);
       }, 10);
     } else if (!start && previousStartRef.current) {
       // Stop the stopwatch
@@ -42,9 +36,6 @@ const Stopwatch = ({ start, reset, options, getTime, laps }) => {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      if (getTime) {
-        getTime('00:00:00');
-      }
     }
   }, [reset]);
 
@@ -58,6 +49,12 @@ const Stopwatch = ({ start, reset, options, getTime, laps }) => {
   };
 
   const formattedTime = formatTime(time);
+
+  useEffect(() => {
+    if (getTime) {
+      getTime(formattedTime);
+    }
+  }, [formattedTime, getTime]);
 
   return (
     <View style={[styles.container, options?.container]}>
