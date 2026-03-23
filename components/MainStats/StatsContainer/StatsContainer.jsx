@@ -16,12 +16,14 @@ const StatsContainer = () => {
   const [walk = 0, setWalk] = useState(0);
   const [weight = 0, setWeight] = useState(0);
   const [sleep = 0, setSleep] = useState(0);
+  const [play = 0, setPlay] = useState(0);
   const [calorie = 0, setCalorie] = useState(0);
 
   useEffect(() => {
     setWalk(0);
     setWeight(0);
     setSleep(0);
+    setPlay(0);
     setCalorie(0);
     if (isFocused && currentPetId) {
       const currentDate = moment().format("YYYY-MM-DDTHH:mm:ss");
@@ -30,6 +32,7 @@ const StatsContainer = () => {
           let calorieData = 0;
           let walkMeters = 0;
           let sleepHours = 0;
+          let playCount = 0;
           activities.forEach((activity) => {
             if (activity.activityType === "walk") {
               walkMeters += parseFloat(activity.meter);
@@ -42,11 +45,14 @@ const StatsContainer = () => {
               sleepHours += diff;
             } else if (activity.activityType === "food") {
               calorieData += parseFloat(activity.calorie);
+            } else if (activity.activityType === "play") {
+              playCount += 1;
             }
           });
           setCalorie(calorieData);
           setWalk(walkMeters);
           setSleep(sleepHours);
+          setPlay(playCount);
         })
         .catch((err) => {
           console.log(err);
@@ -92,6 +98,13 @@ const StatsContainer = () => {
         activity="Sleep"
         data={sleep}
         small="h"
+      />
+      <StatsBox
+        backgroundC="#E6FCF4"
+        textC="#1DA8B1"
+        activity="Play"
+        data={play}
+        small=""
       />
       <StatsBox
         backgroundC="#F5EEFC"
