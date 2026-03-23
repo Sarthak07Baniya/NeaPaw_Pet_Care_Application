@@ -17,6 +17,7 @@ const StatsContainer = () => {
   const [weight = 0, setWeight] = useState(0);
   const [sleep = 0, setSleep] = useState(0);
   const [play = 0, setPlay] = useState(0);
+  const [toilet = 0, setToilet] = useState(0);
   const [calorie = 0, setCalorie] = useState(0);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ const StatsContainer = () => {
     setWeight(0);
     setSleep(0);
     setPlay(0);
+    setToilet(0);
     setCalorie(0);
     if (isFocused && currentPetId) {
       const currentDate = moment().format("YYYY-MM-DDTHH:mm:ss");
@@ -33,6 +35,7 @@ const StatsContainer = () => {
           let walkMeters = 0;
           let sleepHours = 0;
           let playCount = 0;
+          let toiletCount = 0;
           activities.forEach((activity) => {
             if (activity.activityType === "walk") {
               walkMeters += parseFloat(activity.meter);
@@ -47,12 +50,15 @@ const StatsContainer = () => {
               calorieData += parseFloat(activity.calorie);
             } else if (activity.activityType === "play") {
               playCount += 1;
+            } else if (activity.activityType === "toilet") {
+              toiletCount += 1;
             }
           });
           setCalorie(calorieData);
           setWalk(walkMeters);
           setSleep(sleepHours);
           setPlay(playCount);
+          setToilet(toiletCount);
         })
         .catch((err) => {
           console.log(err);
@@ -109,6 +115,13 @@ const StatsContainer = () => {
       <StatsBox
         backgroundC="#F5EEFC"
         textC="#9B51E0"
+        activity="Toilet"
+        data={toilet}
+        small=""
+      />
+      <StatsBox
+        backgroundC="#F3F4F6"
+        textC="#6B7280"
         activity="Weight"
         data={weight}
         small="kg"
