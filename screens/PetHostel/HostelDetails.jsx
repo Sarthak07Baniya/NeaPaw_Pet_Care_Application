@@ -66,7 +66,7 @@ const HostelDetails = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pet Health Information</Text>
           
-          <Text style={styles.label}>Allergies / Health Conditions</Text>
+          <Text style={styles.label}>Allergies / Health Conditions *</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Describe any allergies or health conditions"
@@ -76,7 +76,7 @@ const HostelDetails = ({ navigation }) => {
             numberOfLines={3}
           />
 
-          <Text style={styles.label}>Diet Type</Text>
+          <Text style={styles.label}>Diet Type *</Text>
           <View style={styles.optionsGrid}>
             {dietOptions.map((option) => (
               <TouchableOpacity
@@ -91,7 +91,7 @@ const HostelDetails = ({ navigation }) => {
             ))}
           </View>
 
-          <Text style={styles.label}>Pet Nature</Text>
+          <Text style={styles.label}>Pet Nature *</Text>
           <View style={styles.optionsGrid}>
             {petNatureOptions.map((option) => (
               <TouchableOpacity
@@ -107,7 +107,7 @@ const HostelDetails = ({ navigation }) => {
           </View>
 
           <View style={styles.switchRow}>
-            <Text style={styles.switchLabel}>Vaccination Up to Date?</Text>
+            <Text style={styles.switchLabel}>Vaccination Up to Date? *</Text>
             <Switch
               value={vaccinated}
               onValueChange={setVaccinated}
@@ -117,7 +117,7 @@ const HostelDetails = ({ navigation }) => {
           </View>
 
           <View style={styles.switchRow}>
-            <Text style={styles.switchLabel}>Any Communicable Disease?</Text>
+            <Text style={styles.switchLabel}>Any Communicable Disease? *</Text>
             <Switch
               value={communicableDisease}
               onValueChange={setCommunicableDisease}
