@@ -13,6 +13,7 @@ import {
 import { useSelector } from "react-redux";
 
 import { petService } from "../../../services/petService";
+import CustomLineChart from "../../../components/ui/charts/LineChart/CustomLineChart";
 
 const MedicalHistory = () => {
   const [medicalData, setMedicalData] = useState([]);
@@ -81,6 +82,7 @@ const MedicalHistory = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>Pet Medical History</Text>
+      <CustomLineChart title="Medical History Stats" />
       <FlatList
         data={medicalData}
         contentContainerStyle={styles.listContent}

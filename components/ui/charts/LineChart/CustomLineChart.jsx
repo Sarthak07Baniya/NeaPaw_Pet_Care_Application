@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
 import { getAllVaccinebyPetId } from "../../../../database/tables/vaccine";
+import { getAllMedicalbyPetId } from "../../../../database/tables/medical";
 
 const CustomLineChart = ({ title }) => {
   const screenWidth = Dimensions.get("window").width * 0.8;
@@ -24,7 +25,12 @@ const CustomLineChart = ({ title }) => {
     setDataLabels(lastSixMont.reverse());
 
     if (isFocused && currentPetId) {
-      getAllVaccinebyPetId(currentPetId)
+      const loadChartData =
+        title === "Medical History Stats"
+          ? getAllMedicalbyPetId(currentPetId)
+          : getAllVaccinebyPetId(currentPetId);
+
+      loadChartData
         .then((res) => {
           const allMontData = [0, 0, 0, 0, 0, 0];
           res.forEach((element) => {
@@ -53,7 +59,9 @@ const CustomLineChart = ({ title }) => {
   return (
     <View style={styles.barContainer}>
       <View style={styles.textContainer}>
-        <Text style={styles.headerText}>Vaccine History Stats</Text>
+        <Text style={styles.headerText}>
+          {title || "Vaccine History Stats"}
+        </Text>
         <Text style={styles.headerSmallText}>Last 6 Months</Text>
       </View>
       <LineChart
@@ -65,7 +73,8 @@ const CustomLineChart = ({ title }) => {
           datasets: [
             {
               data: data,
-              color: (opacity = 1) => `#FD5B71`, // optional
+              color: (opacity = 1) =>
+                title === "Medical History Stats" ? `#E76F51` : `#FD5B71`,
               strokeWidth: 2, // optional
             },
           ],
@@ -83,8 +92,10 @@ const CustomLineChart = ({ title }) => {
           strokeWidth: 2, // optional, default 3
           barPercentage: 0.5,
           useShadowColorFromDataset: false, // optional
-          fillShadowGradientFrom: "#FD5B71",
-          fillShadowGradientTo: "#FFF1F3",
+          fillShadowGradientFrom:
+            title === "Medical History Stats" ? "#E76F51" : "#FD5B71",
+          fillShadowGradientTo:
+            title === "Medical History Stats" ? "#FFF3EF" : "#FFF1F3",
           fillShadowGradientFromOpacity: 0.8,
           fillShadowGradientFromOffset: 1,
           fillShadowGradientToOffset: 0.1,
