@@ -63,7 +63,7 @@ const UpcomingHealthEvents = () => {
           </View>
           <View style={styles.timeContainer}>
             {events.length === 0 && (
-              <View style={styles.timeSingleContainer}>
+              <View style={styles.emptyStateContainer}>
                 <Text style={styles.activity}>No Events Found</Text>
               </View>
             )}
@@ -171,6 +171,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  emptyStateContainer: {
+    marginTop: "5%",
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: -8,
   },
   time: {
     color: "#F5EEFC",
