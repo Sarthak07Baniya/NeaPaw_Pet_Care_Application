@@ -11,6 +11,16 @@ export const adoptionService = {
     }
   },
 
+  getPet: async (petId) => {
+    try {
+      const response = await api.get(`adoption/pets/${petId}/`);
+      return response.data;
+    } catch (error) {
+      console.error("Get adoption pet error:", error);
+      throw error;
+    }
+  },
+
   getApplications: async () => {
     try {
       const response = await api.get('adoption/applications/');

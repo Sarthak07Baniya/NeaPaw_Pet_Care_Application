@@ -1,10 +1,34 @@
+import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
+import { adoptionService } from '../../services/adoptionService';
 import { resolveMediaUrl } from '../../services/api';
 
 const PetDetails = ({ route, navigation }) => {
-  const pet = route?.params?.pet;
+  const routePet = route?.params?.pet;
+  const [pet, setPet] = useState(routePet);
   const photoUrl = resolveMediaUrl(pet?.photo);
+
+  useEffect(() => {
+    setPet(routePet);
+  }, [routePet]);
+
+  useEffect(() => {
+    const fetchLatestPet = async () => {
+      if (!routePet?.id) {
+        return;
+      }
+
+      try {
+        const latestPet = await adoptionService.getPet(routePet.id);
+        setPet(latestPet);
+      } catch (error) {
+        // Keep the route pet as fallback if refresh fails.
+      }
+    };
+
+    fetchLatestPet();
+  }, [routePet?.id]);
 
   const renderStars = () => {
     const stars = [];
