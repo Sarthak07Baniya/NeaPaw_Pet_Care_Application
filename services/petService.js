@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "./api";
+import { addWeight, deleteWeight, getAllWeightbyPetId } from "../database/tables/weight";
 
 const LOCAL_VACCINES_KEY = "neapaw_local_vaccines";
 
@@ -105,18 +106,22 @@ export const petService = {
   // Weight Logs
   addWeightLog: async (weightData) => {
     try {
-      const response = await api.post('pets/weights/', weightData);
-      return response.data;
+      const localWeight = {
+        petId: weightData.petId ?? weightData.pet,
+        weight: weightData.weight,
+        date: weightData.date,
+      };
+      const id = await addWeight(localWeight);
+      return { ...localWeight, id };
     } catch (error) {
       console.error("Add weight log error:", error);
       throw error;
     }
   },
 
-  getWeightHistory: async () => {
+  getWeightHistory: async (petId) => {
     try {
-      const response = await api.get('pets/weights/');
-      return response.data;
+      return await getAllWeightbyPetId(petId);
     } catch (error) {
       console.error("Get weight history error:", error);
       throw error;
@@ -125,7 +130,7 @@ export const petService = {
 
   deleteWeightLog: async (id) => {
     try {
-      await api.delete(`pets/weights/${id}/`);
+      await deleteWeight(id);
       return true;
     } catch (error) {
       console.error("Delete weight log error:", error);

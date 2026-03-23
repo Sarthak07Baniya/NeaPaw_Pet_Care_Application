@@ -26,7 +26,7 @@ const WeightHistory = ({ route, navigation }) => {
   }, [isFocused, currentPetId]);
 
   const loadWeightHistory = () => {
-      petService.getWeightHistory()
+      petService.getWeightHistory(currentPetId)
         .then((weight) => {
           const sortedWeight = weight.sort((a, b) => {
             return new Date(a.date) - new Date(b.date);
