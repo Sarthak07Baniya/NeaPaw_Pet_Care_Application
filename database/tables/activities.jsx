@@ -3,14 +3,29 @@
 let mockActivities = [];
 let nextActivityId = 1;
 
+const normalizeDateOnly = (value) => {
+  if (!value) return "";
+  return String(value).split("T")[0];
+};
+
 export const getActivitiesForADate = (petId, date) => {
+  const targetDate = normalizeDateOnly(date);
   const filtered = mockActivities.filter(
-    activity => activity.petId === +petId && activity.date === date
+    (activity) =>
+      activity.petId === +petId &&
+      normalizeDateOnly(activity.date) === targetDate
   );
   return Promise.resolve(filtered);
 };
 
-export const addAnActivity = (activity) => {
+export const addAnActivity = (petIdOrActivity, maybeActivity) => {
+  const activity =
+    typeof petIdOrActivity === 'object' && petIdOrActivity !== null
+      ? petIdOrActivity
+      : {
+          ...maybeActivity,
+          petId: maybeActivity?.petId ?? +petIdOrActivity,
+        };
   const newActivity = {
     ...activity,
     id: nextActivityId++,
