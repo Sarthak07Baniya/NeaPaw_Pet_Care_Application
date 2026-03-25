@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-+o)e*n$f48r&yv=qtmmr84u6fl=aj9@9sm6vw=1ng6oap1k(*h
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*", "192.168.1.149", "localhost"]
 
 
 # Application definition
@@ -35,11 +35,17 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
 
-    # Local apps
+   # Local apps
     'authentication',
     'pets',
-    'profiles',
+    'shopping',
     'treatment',
+    'hostel',
+    'adoption',
+    'profiles',
+    'orders',
+    
+    
 ]
 
 #Jazzmin Settings
@@ -47,21 +53,22 @@ INSTALLED_APPS = [
 JAZZMIN_SETTINGS = {
 
     #Site branding
-    "site_title": "Neapaw Admin",
-    "site_header": "NeaPaw Pet Care",
+    "site_title": "NeaPaw Control Center",
+    "site_header": "NeaPaw Admin Portal",
     "site_brand" : "NeaPaw",
     "site_logo": None, #Can add logo path later
     "login_logo": None,
     "site_logo_classes": "img-circle",
     "site_icon": None,
-    "welcome_sign": "Welcome to Neapaw Pet Care Admin Portal",
+    "welcome_sign": "Welcome back to the NeaPaw operations dashboard",
     "copyright": "Neapaw Pet Care",
-    "search_model": ["auth.User", "pets.Pet"],
+    "search_model": ["auth.User", "pets.Pet", "shopping.Product", "orders.Order"],
 
     #Top menu links
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "API Docs", "url": "/swagger", "new_window":True},
+        {"name": "Frontend API", "url": "/api/v1/config/", "new_window": True},
         {"model":"auth.User"},
     ],
 
@@ -82,24 +89,43 @@ JAZZMIN_SETTINGS = {
         "authentication",
         "profiles",
         "pets",
+        "shopping",
         "treatment",
+        "hostel",
+        "adoption",
+        "orders",
     ],
 
     # Icons for models (using Font Awesome)
     "icons":{
         "auth" : "fas fa-user-cog",
         "auth.user" : "fas fa-user",
-        "auth.Group": "fas fa-user",
+        "auth.Group": "fas fa-users",
         "authentication.user" : "fas fa-user-circle",
         "profiles.profile": "fas fa-id-card",
         "pets.pet": "fas fa-paw",
-        "treatment.treatment": "fas fa-medkit",
+        "shopping.product": "fas fa-box-open",
+        "shopping.offer": "fas fa-tags",
+        "shopping.review": "fas fa-star",
+        "orders.order": "fas fa-shopping-bag",
+        "orders.orderitem": "fas fa-receipt",
+        "orders.ordertracking": "fas fa-route",
+        "orders.chatmessage": "fas fa-comments",
+        "pets.petvaccine": "fas fa-syringe",
+        "pets.devicepushtoken": "fas fa-bell",
+        "treatment.treatmentbooking": "fas fa-stethoscope",
+        "treatment.treatmentreview": "fas fa-star-half-alt",
+        "hostel.hostelbooking": "fas fa-home",
+        "hostel.hostelreview": "fas fa-hotel",
+        "adoption.adoptionpet": "fas fa-dog",
+        "adoption.adoptionapplication": "fas fa-file-signature",
+        "adoption.adoptionreview": "fas fa-heart",
 
     },
 
     #UI Tweaks
-    "custom_css": None,
-    "custome_js": None,
+    "custom_css": "admin/neapaw_admin.css",
+    "custom_js": None,
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
 
@@ -123,6 +149,23 @@ JAZZMIN_SETTINGS = {
             "icon": "fas fa-paw",
             "permissions": ["pets.view_pet"]
 
+        }, {
+            "name": "Vaccine Reminders",
+            "url": "admin:pets_petvaccine_changelist",
+            "icon": "fas fa-syringe",
+            "permissions": ["pets.view_petvaccine"]
+        }],
+        "shopping": [{
+            "name": "Products",
+            "url": "admin:shopping_product_changelist",
+            "icon": "fas fa-box-open",
+            "permissions": ["shopping.view_product"]
+        }],
+        "orders": [{
+            "name": "Shopping Orders",
+            "url": "admin:orders_order_changelist",
+            "icon": "fas fa-shopping-bag",
+            "permissions": ["orders.view_order"]
         }],
     },
 
@@ -138,19 +181,19 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-primary",
-    "accent": "accent-primary",
+    "brand_colour": "navbar-navy",
+    "accent": "accent-warning",
     "navbar": "navbar-white navbar-light",
-    "no_navbar_border": False,
-    "navbar_fixed": False,
+    "no_navbar_border": True,
+    "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
-    "sidebar_fixed": False,
-    "sidebar" : "sidebar-dark-primary",
+    "sidebar_fixed": True,
+    "sidebar" : "sidebar-dark-indigo",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": False,
-    "sidebar_nav_compact_style": False,
+    "sidebar_nav_compact_style": True,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "default",
@@ -200,12 +243,24 @@ WSGI_APPLICATION = 'neapaw_api.wsgi.application'
 # Database
 
 
+#DATABASES = {
+    #'default': {
+       # 'ENGINE': 'django.db.backends.sqlite3',
+        #'NAME': BASE_DIR / 'db.sqlite3',
+    #}
+#}
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'neapaw_db',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation
@@ -278,11 +333,12 @@ SWAGGER_SETTINGS = {
         'Bearer': {
             'type': 'apiKey',
             'name': 'Authorization',
-            'in': 'header'
+            'in': 'header',
+           
         }
     },
-    'USE_SESSION_AUTH': False, # This removes the basic 'Username/Password' login
-    'PERSIST_AUTH': True,      # This keeps you logged in even if you refresh the page
+    'USE_SESSION_AUTH': False,
+    'PERSIST_AUTH': True,
 }
 
 

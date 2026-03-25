@@ -1,0 +1,83 @@
+.main-header .navbar {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.brand-link {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.content-wrapper {
+  background: linear-gradient(180deg, #f6f8fc 0%, #eef3fb 100%);
+}
+
+.content-header h1,
+.content-header .m-0 {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.card,
+.small-box,
+.info-box,
+.jazzmin-box {
+  border-radius: 18px !important;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+}
+
+.btn,
+.select2-container--default .select2-selection--single,
+.form-control {
+  border-radius: 12px !important;
+}
+
+.btn-primary,
+.btn-info,
+.btn-success {
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.18);
+}
+
+.main-sidebar .nav-sidebar .nav-link.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.24);
+}
+
+.content-wrapper .table thead th,
+.content-wrapper .table thead th a,
+.content-wrapper .table tbody td a,
+.content-wrapper a,
+.change-list .results th a,
+.change-list .results td a {
+  color: #4f46e5 !important;
+}
+
+.content-wrapper a:not(.btn):not(.page-link):not(.nav-link),
+.change-list .results a {
+  color: #4f46e5 !important;
+}
+
+.content-wrapper .table tbody td a:hover,
+.content-wrapper a:not(.btn):not(.page-link):not(.nav-link):hover,
+.change-list .results td a:hover,
+.change-list .results th a:hover {
+  color: #3730a3 !important;
+}
+
+.main-sidebar .nav-sidebar .nav-header {
+  color: #cbd5e1 !important;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-page {
+  background: radial-gradient(circle at top left, #dbeafe 0%, #eff6ff 35%, #f8fafc 100%);
+}
+
+.login-box .card {
+  border-radius: 24px !important;
+  overflow: hidden;
+}
