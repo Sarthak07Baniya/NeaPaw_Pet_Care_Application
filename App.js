@@ -8,6 +8,7 @@ import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import MainNavigations from "./navigations/MainNavigations";
 import { store } from "./redux/store";
+import { localNotificationService } from "./services/localNotificationService";
 import { petService } from "./services/petService";
 
 /* ---------------------------------------------------
@@ -48,6 +49,28 @@ const NotificationReporter = () => {
   const processedVaccineIds = useRef(new Set());
 
   useEffect(() => {
+    const syncNotification = (notificationPayload, options = {}) => {
+      const notificationId = notificationPayload?.request?.identifier;
+      const content = notificationPayload?.request?.content;
+      const data = content?.data || {};
+
+      if (!notificationId || !content) {
+        return;
+      }
+
+      localNotificationService.upsertNotification({
+        id: notificationId,
+        title: content.title || "Notification",
+        message: content.body || "No message",
+        created_at: new Date().toISOString(),
+        is_read: !!options.isRead,
+        source: "expo",
+        type: data?.type || "local_notification",
+      }).catch((error) => {
+        console.log("Unable to save local notification:", error);
+      });
+    };
+
     const markReminderSent = (notificationData) => {
       const vaccineId = notificationData?.vaccineId;
       const type = notificationData?.type;
@@ -69,12 +92,14 @@ const NotificationReporter = () => {
 
     const receivedSubscription = Notifications.addNotificationReceivedListener(
       (notification) => {
+        syncNotification(notification, { isRead: false });
         markReminderSent(notification?.request?.content?.data);
       }
     );
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
+        syncNotification(response?.notification, { isRead: true });
         markReminderSent(response?.notification?.request?.content?.data);
       }
     );
