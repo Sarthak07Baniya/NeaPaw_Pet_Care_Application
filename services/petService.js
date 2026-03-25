@@ -1,7 +1,7 @@
 import api from "./api";
 import { addWeight, deleteWeight, getAllWeightbyPetId } from "../database/tables/weight";
-import { addAVaccine, deleteVaccine as deleteLocalVaccine, getAllVaccinebyPetId } from "../database/tables/vaccine";
 import { addAMedical, deleteMedical as deleteLocalMedical, getAllMedicalbyPetId } from "../database/tables/medical";
+import { addVet, deleteVet as deleteLocalVet, getAllVetbyPetId } from "../database/tables/vet";
 
 export const petService = {
   getPets: async () => {
@@ -65,18 +65,22 @@ export const petService = {
   // Vet Visits
   addVetVisit: async (visitData) => {
     try {
-      const response = await api.post('pets/visits/', visitData);
-      return response.data;
+      const localVisit = {
+        petId: visitData.petId ?? visitData.pet,
+        date: visitData.date,
+        note: visitData.note,
+      };
+      const id = await addVet(localVisit);
+      return { ...localVisit, id };
     } catch (error) {
       console.error("Add vet visit error:", error);
       throw error;
     }
   },
 
-  getVetVisits: async () => {
+  getVetVisits: async (petId) => {
     try {
-      const response = await api.get('pets/visits/');
-      return response.data;
+      return await getAllVetbyPetId(petId);
     } catch (error) {
       console.error("Get vet visits error:", error);
       throw error;
@@ -85,7 +89,7 @@ export const petService = {
 
   deleteVetVisit: async (id) => {
     try {
-      await api.delete(`pets/visits/${id}/`);
+      await deleteLocalVet(id);
       return true;
     } catch (error) {
       console.error("Delete vet visit error:", error);
@@ -129,23 +133,48 @@ export const petService = {
   },
 
   addVaccine: async (vaccineData) => {
-    const localVaccine = {
-      petId: vaccineData.petId ?? vaccineData.pet,
-      name: vaccineData.name,
-      date: vaccineData.date,
-      note: vaccineData.note,
-    };
-    const id = await addAVaccine(localVaccine);
-    return { ...localVaccine, id };
+    try {
+      const response = await api.post("pets/vaccines/", {
+        pet: vaccineData.petId ?? vaccineData.pet,
+        name: vaccineData.name,
+        date: vaccineData.date,
+        note: vaccineData.note,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Add vaccine error:", error);
+      throw error;
+    }
   },
 
   getVaccines: async (petId) => {
-    return await getAllVaccinebyPetId(petId);
+    try {
+      const response = await api.get(`pets/vaccines/?pet=${petId}`);
+      return response.data?.results || response.data || [];
+    } catch (error) {
+      console.error("Get vaccines error:", error);
+      throw error;
+    }
   },
 
   deleteVaccine: async (id) => {
-    await deleteLocalVaccine(id);
-    return true;
+    try {
+      await api.delete(`pets/vaccines/${id}/`);
+      return true;
+    } catch (error) {
+      console.error("Delete vaccine error:", error);
+      throw error;
+    }
+  },
+
+  markVaccineReminderSent: async (id) => {
+    try {
+      const response = await api.post(`pets/vaccines/${id}/mark-reminder-sent/`);
+      return response.data;
+    } catch (error) {
+      console.error("Mark vaccine reminder sent error:", error);
+      throw error;
+    }
   },
 
   // Medical Records

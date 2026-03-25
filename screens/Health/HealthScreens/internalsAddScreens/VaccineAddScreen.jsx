@@ -4,6 +4,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useSelector } from "react-redux";
 import moment from "moment";
 import Button from "../../../../components/ui/Button/Button";
+import ClockPicker from "../../../../components/ui/ClockPicker/ClockPicker";
 import DatePickerInput from "../../../../components/ui/DatePicker/DatePickerInput";
 import Input from "../../../../components/ui/Input/Input";
 import { petService } from "../../../../services/petService";
@@ -14,16 +15,20 @@ const VaccineAddScreen = ({ navigation }) => {
   const petName = useSelector((state) => state.myPet.currentPetInfo.name);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
 
   const nameHandler = (name) => {
     setName(name);
   };
-  const timeHandler = (date) => {
+  const dateHandler = (date) => {
     setDate(date);
+  };
+  const timeHandler = (selectedTime) => {
+    setTime(selectedTime);
   };
 
   const addVaccineHandler = () => {
-    if (name.length === 0 || date.length === 0) {
+    if (name.length === 0 || date.length === 0 || time.length === 0) {
       return Alert.alert("oops...", "Please fill all the fields");
     } else if (name.length > 20) {
       return Alert.alert("oops...", "Please enter a valid name");
@@ -32,24 +37,70 @@ const VaccineAddScreen = ({ navigation }) => {
     if (!normalizedDate.isValid()) {
       return Alert.alert("oops...", "Please select a valid date");
     }
-    const formattedDateString = `${normalizedDate.format("YYYY-MM-DD")}T00:00:00`;
+    const normalizedDateTime = moment(
+      `${normalizedDate.format("YYYY-MM-DD")} ${time}`,
+      [
+        "YYYY-MM-DD hh:mm:ss A",
+        "YYYY-MM-DD h:mm:ss A",
+        "YYYY-MM-DD HH:mm:ss",
+        "YYYY-MM-DD HH:mm",
+        "YYYY-MM-DD hh:mm A",
+        "YYYY-MM-DD h:mm A",
+      ],
+      true
+    );
+
+    if (!normalizedDateTime.isValid()) {
+      return Alert.alert("oops...", "Please select a valid time");
+    }
+
+    const now = moment();
+    const selectedDay = normalizedDateTime.clone().startOf("day");
+    const today = now.clone().startOf("day");
+
+    if (selectedDay.isBefore(today)) {
+      return Alert.alert("oops...", "Please select today or a future vaccine date");
+    }
+
+    const selectedMinute = normalizedDateTime.clone().startOf("minute");
+    const currentMinute = now.clone().startOf("minute");
+
+    if (selectedDay.isSame(today) && selectedMinute.isBefore(currentMinute)) {
+      return Alert.alert("oops...", "For today, please select a time that is still ahead");
+    }
+
+    const formattedDateString = normalizedDateTime.format("YYYY-MM-DDTHH:mm:ss");
 
     const vaccineData = {
       pet: currentPetId,
       name: name.trim(),
       date: formattedDateString,
-      note: `Vaccine: ${name.trim()}`,
+      note: `Vaccine: ${name.trim()} at ${time}`,
     };
 
     petService.addVaccine(vaccineData)
-      .then(() => {
+      .then(async (savedVaccine) => {
+        try {
+          await schedulePushNotification(
+            `${petName} vaccine reminder`,
+            `${name.trim()} vaccine time is now.`,
+            normalizedDateTime.toDate(),
+            normalizedDateTime.format("HH:mm:ss"),
+            {
+              includeReminderBefore: false,
+              data: {
+                type: "vaccine_reminder",
+                vaccineId: savedVaccine?.id,
+              },
+            }
+          );
+        } catch (notificationError) {
+          Alert.alert(
+            "Saved without reminder",
+            notificationError?.message || "The vaccine was saved, but the reminder could not be scheduled."
+          );
+        }
         navigation.navigate("VaccineHistory", { refresh: true });
-        schedulePushNotification(
-          `${petName} has a Vaccine`,
-          `Pssttt ${name} Vaccine is now...`,
-          normalizedDate.toDate(),
-          "00:00:00"
-        );
       })
       .catch((err) => {
         console.log("Add vaccine error:", err);
@@ -62,12 +113,18 @@ const VaccineAddScreen = ({ navigation }) => {
       showsVerticalScrollIndicator={false}
       style={styles.container}
     >
-      <Text style={styles.headerText}>Fill Inputs to add Vaccine Date</Text>
+      <Text style={styles.headerText}>Fill Inputs to add Vaccine Date and Time</Text>
       <View style={styles.editContainer}>
         <DatePickerInput
           showLabel={false}
-          buttonText="Pick Date and Hour"
+          buttonText="Pick Vaccine Date"
           title="Vaccine Date"
+          onChange={dateHandler}
+        />
+        <ClockPicker
+          placeHolder="Vaccine Time"
+          buttonPlaceHolder="Save Vaccine Time"
+          showSeconds
           onChange={timeHandler}
         />
         <Input
