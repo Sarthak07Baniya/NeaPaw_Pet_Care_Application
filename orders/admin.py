@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Order, OrderItem, OrderTracking, Notification, ChatMessage
+from .models import Order, OrderItem, OrderTracking, ChatMessage
+
+
+def shopping_only_queryset(queryset, request):
+    resolver_match = getattr(request, 'resolver_match', None)
+    if resolver_match and resolver_match.url_name and resolver_match.url_name.endswith('_changelist'):
+        return queryset.filter(order_type='shopping')
+    return queryset
 
 
 class OrderItemInline(admin.TabularInline):
@@ -18,15 +25,45 @@ class OrderTrackingInline(admin.TabularInline):
     fields = ('status', 'message', 'location', 'timestamp')
 
 
+class UserChatMessageInline(admin.TabularInline):
+    model = ChatMessage
+    extra = 0
+    can_delete = False
+    verbose_name = "User Message"
+    verbose_name_plural = "User Messages"
+    fields = ('sender', 'message', 'timestamp')
+    readonly_fields = ('sender', 'message', 'timestamp')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(is_admin_reply=False).order_by('timestamp')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class AdminReplyInline(admin.TabularInline):
+    model = ChatMessage
+    extra = 1
+    verbose_name = "Admin Reply"
+    verbose_name_plural = "Admin Replies"
+    fields = ('message', 'timestamp')
+    readonly_fields = ('timestamp',)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(is_admin_reply=True).order_by('timestamp')
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     """Admin configuration for Order model"""
-    list_display = ('order_number', 'user', 'order_type', 'status', 'total', 'payment_method', 'created_at')
-    list_filter = ('order_type', 'status', 'payment_method', 'created_at')
+    list_display = ('order_number', 'user', 'status', 'total', 'payment_method', 'created_at')
+    list_filter = ('status', 'payment_method', 'created_at')
     search_fields = ('order_number', 'user__email', 'user__username')
-    readonly_fields = ('order_number', 'created_at', 'updated_at')
+    readonly_fields = ('order_number', 'order_type', 'created_at', 'updated_at')
     date_hierarchy = 'created_at'
-    inlines = [OrderItemInline, OrderTrackingInline]
+    inlines = [OrderItemInline, OrderTrackingInline, UserChatMessageInline, AdminReplyInline]
     
     fieldsets = (
         ('Order Information', {
@@ -45,6 +82,10 @@ class OrderAdmin(admin.ModelAdmin):
     )
     
     actions = ['mark_confirmed', 'mark_in_transit', 'mark_delivered']
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return shopping_only_queryset(queryset, request)
     
     def mark_confirmed(self, request, queryset):
         """Mark orders as confirmed"""
@@ -60,9 +101,27 @@ class OrderAdmin(admin.ModelAdmin):
     
     def mark_delivered(self, request, queryset):
         """Mark orders as delivered"""
-        updated = queryset.update(status='delivered')
+        updated = 0
+        for order in queryset:
+            if order.status == 'delivered':
+                continue
+            order.status = 'delivered'
+            order.save()
+            updated += 1
         self.message_user(request, f'{updated} orders marked as delivered.')
     mark_delivered.short_description = 'Mark selected orders as delivered'
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for deleted_object in formset.deleted_objects:
+            deleted_object.delete()
+        for instance in instances:
+            if isinstance(instance, ChatMessage):
+                if not instance.sender_id:
+                    instance.sender = request.user
+                instance.is_admin_reply = True
+            instance.save()
+        formset.save_m2m()
 
 
 @admin.register(OrderItem)
@@ -71,6 +130,13 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('order', 'product', 'quantity', 'price_at_time')
     search_fields = ('order__order_number', 'product__name')
     readonly_fields = ('price_at_time',)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        resolver_match = getattr(request, 'resolver_match', None)
+        if resolver_match and resolver_match.url_name and resolver_match.url_name.endswith('_changelist'):
+            return queryset.filter(order__order_type='shopping')
+        return queryset
 
 
 @admin.register(OrderTracking)
@@ -82,29 +148,12 @@ class OrderTrackingAdmin(admin.ModelAdmin):
     readonly_fields = ('timestamp',)
     date_hierarchy = 'timestamp'
 
-
-@admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
-    """Admin configuration for Notification model"""
-    list_display = ('user', 'title', 'notification_type', 'is_read', 'created_at')
-    list_filter = ('notification_type', 'is_read', 'created_at')
-    search_fields = ('user__email', 'title', 'message')
-    readonly_fields = ('created_at',)
-    date_hierarchy = 'created_at'
-    
-    actions = ['mark_as_read', 'mark_as_unread']
-    
-    def mark_as_read(self, request, queryset):
-        """Mark notifications as read"""
-        updated = queryset.update(is_read=True)
-        self.message_user(request, f'{updated} notifications marked as read.')
-    mark_as_read.short_description = 'Mark selected notifications as read'
-    
-    def mark_as_unread(self, request, queryset):
-        """Mark notifications as unread"""
-        updated = queryset.update(is_read=False)
-        self.message_user(request, f'{updated} notifications marked as unread.')
-    mark_as_unread.short_description = 'Mark selected notifications as unread'
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        resolver_match = getattr(request, 'resolver_match', None)
+        if resolver_match and resolver_match.url_name and resolver_match.url_name.endswith('_changelist'):
+            return queryset.filter(order__order_type='shopping')
+        return queryset
 
 
 @admin.register(ChatMessage)
@@ -115,3 +164,17 @@ class ChatMessageAdmin(admin.ModelAdmin):
     search_fields = ('order__order_number', 'sender__email', 'message')
     readonly_fields = ('timestamp',)
     date_hierarchy = 'timestamp'
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        resolver_match = getattr(request, 'resolver_match', None)
+        if resolver_match and resolver_match.url_name and resolver_match.url_name.endswith('_changelist'):
+            return queryset.filter(order__order_type='shopping')
+        return queryset
+
+    def save_model(self, request, obj, form, change):
+        if not obj.sender_id:
+            obj.sender = request.user
+        if request.user.is_staff:
+            obj.is_admin_reply = True
+        super().save_model(request, obj, form, change)
