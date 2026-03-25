@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Pet
+from .models import DevicePushToken, Pet, PetVaccine
 from datetime import date
 
 class PetSerializer(serializers.ModelSerializer):
@@ -35,3 +35,59 @@ class PetSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class PetVaccineSerializer(serializers.ModelSerializer):
+    date = serializers.DateTimeField(source='scheduled_at')
+
+    class Meta:
+        model = PetVaccine
+        fields = (
+            'id',
+            'pet',
+            'name',
+            'date',
+            'note',
+            'reminder_sent_at',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('reminder_sent_at', 'created_at', 'updated_at')
+
+    def validate_pet(self, value):
+        request = self.context.get('request')
+        if request and value.user_id != request.user.id:
+            raise serializers.ValidationError("You can only add vaccines for your own pets.")
+        return value
+
+
+class DevicePushTokenSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(validators=[])
+
+    class Meta:
+        model = DevicePushToken
+        fields = (
+            'id',
+            'token',
+            'platform',
+            'device_name',
+            'is_active',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        token_value = validated_data['token']
+        defaults = {
+            'user': user,
+            'platform': validated_data['platform'],
+            'device_name': validated_data.get('device_name'),
+            'is_active': validated_data.get('is_active', True),
+        }
+        token, _ = DevicePushToken.objects.update_or_create(
+            token=token_value,
+            defaults=defaults,
+        )
+        return token
