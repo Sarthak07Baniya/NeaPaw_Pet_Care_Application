@@ -39,17 +39,17 @@ const PetInfoFirst = ({ navigation }) => {
         "oops...",
         "Please enter your pet's name(max 10 chracter and min 2)"
       );
-    } else if (birthDate === "") {
-      return Alert.alert("oops...", "Please enter your pet's birth date");
     }
     let trimName = name.trim();
-    const normalizedBirthDate = moment(
-      birthDate,
-      ["YYYY/MM/DD", "YYYY-MM-DD", moment.ISO_8601],
-      true
-    ).format("YYYY-MM-DD");
+    const normalizedBirthDate = birthDate
+      ? moment(
+          birthDate,
+          ["YYYY/MM/DD", "YYYY-MM-DD", moment.ISO_8601],
+          true
+        ).format("YYYY-MM-DD")
+      : "";
 
-    if (!normalizedBirthDate || normalizedBirthDate === "Invalid date") {
+    if (birthDate && (!normalizedBirthDate || normalizedBirthDate === "Invalid date")) {
       return Alert.alert("oops...", "Please enter a valid pet birth date");
     }
 
@@ -79,9 +79,9 @@ const PetInfoFirst = ({ navigation }) => {
       <Text style={styles.headerText}>Fill Your Pet Info</Text>
       <Photo />
       <Input
-        placeholder="Pet Name"
+        placeholder="Pet Name *"
         type="default"
-        label="Pet Name"
+        label="Pet Name *"
         onChange={nameChangeHandler}
         value={name}
       />
@@ -89,9 +89,10 @@ const PetInfoFirst = ({ navigation }) => {
       <DatePickerInput
         selectedDateForUpdate={birthDate}
         onChange={birthDateHandler}
-        title="Birth Date"
+        title="Birth Date (if known)"
         isStartingScreenBirthDate={true}
         locale="en-US"
+        customLabel="Birth Date (if known)"
       />
       <View style={styles.buttonContainer}>
         <Button text="Next" onPress={petInfoSecondHandler} />

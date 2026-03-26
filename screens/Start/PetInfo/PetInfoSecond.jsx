@@ -76,6 +76,7 @@ const PetInfoSecond = ({ navigation }) => {
     >
       <Level level="3" />
       <Text style={styles.headerText}>Fill Your Pet Info</Text>
+      <Text style={styles.genderLabel}>Gender *</Text>
       <View style={styles.genderContainer}>
         <Pressable
           onPress={() => {
@@ -109,16 +110,16 @@ const PetInfoSecond = ({ navigation }) => {
         </Pressable>
       </View>
       <Input
-        placeholder="Breed"
+        placeholder="Breed *"
         type="default"
-        label="Breed"
+        label="Breed *"
         onChange={breedHandler}
         value={breed}
       />
       <Input
-        placeholder="Weight  (kg)"
+        placeholder="Weight (kg) *"
         type="numeric"
-        label="Weight  (kg)"
+        label="Weight (kg) *"
         onChange={weightHandler}
         value={weight}
       />
@@ -150,6 +151,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     flexDirection: "row",
     alignItems: "center",
+  },
+  genderLabel: {
+    marginTop: 24,
+    marginLeft: 24,
+    color: "#1A1A1A",
+    fontSize: 14,
+    fontWeight: "500",
   },
   male: {
     backgroundColor: "#E6EAF2",
