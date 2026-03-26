@@ -2,9 +2,7 @@ import {
   StyleSheet,
   Text,
   View,
-  Keyboard,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
+  ScrollView,
   Pressable,
   Alert,
 } from "react-native";
@@ -13,8 +11,6 @@ import { useIsFocused } from "@react-navigation/native";
 import Level from "../../../components/level/Level";
 import Input from "../../../components/ui/Input/Input";
 import Button from "../../../components/ui/Button/Button";
-import Photo from "../../../components/ui/ImagePhoto/Photo";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDispatch, useSelector } from "react-redux";
 import { setGenderBreedWeight } from "../../../redux/slice/myPetSlice";
 
@@ -70,9 +66,10 @@ const PetInfoSecond = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAwareScrollView
+    <ScrollView
       showsVerticalScrollIndicator={false}
       style={styles.petInfoSecondContainer}
+      keyboardShouldPersistTaps="handled"
     >
       <Level level="3" />
       <Text style={styles.headerText}>Fill Your Pet Info</Text>
@@ -126,7 +123,7 @@ const PetInfoSecond = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <Button text="Next" onPress={ownerPageHandler} />
       </View>
-    </KeyboardAwareScrollView>
+    </ScrollView>
   );
 };
 

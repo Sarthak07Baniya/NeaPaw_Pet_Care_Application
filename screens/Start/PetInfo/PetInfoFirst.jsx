@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   View
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDispatch, useSelector } from "react-redux";
 import Level from "../../../components/level/Level";
 import Button from "../../../components/ui/Button/Button";
@@ -71,9 +71,10 @@ const PetInfoFirst = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAwareScrollView
+    <ScrollView
       showsVerticalScrollIndicator={false}
       style={styles.petInfoFirstContainer}
+      keyboardShouldPersistTaps="handled"
     >
       <Level level="2" />
       <Text style={styles.headerText}>Fill Your Pet Info</Text>
@@ -97,7 +98,7 @@ const PetInfoFirst = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <Button text="Next" onPress={petInfoSecondHandler} />
       </View>
-    </KeyboardAwareScrollView>
+    </ScrollView>
   );
 };
 

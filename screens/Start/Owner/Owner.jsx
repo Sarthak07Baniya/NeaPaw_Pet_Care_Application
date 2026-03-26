@@ -6,11 +6,11 @@ import {
     Alert,
     Dimensions,
     Image,
+    ScrollView,
     StyleSheet,
     Text,
     View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDispatch, useSelector } from "react-redux";
 import cat6 from "../../../assets/activityImages/cat/cat--6.png";
 import image from "../../../assets/images/owner.png";
@@ -108,9 +108,10 @@ const Owner = ({ navigation }) => {
   }, [isFocused]);
 
   return (
-    <KeyboardAwareScrollView
+    <ScrollView
       style={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={styles.container}>
         <View
@@ -160,7 +161,7 @@ const Owner = ({ navigation }) => {
           <ActivityIndicator size="large" color="#707BFB" />
         </View>
       )}
-    </KeyboardAwareScrollView>
+    </ScrollView>
   );
 };
 
