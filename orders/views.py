@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Q
 from .models import Order, Notification, ChatMessage
 from .serializers import OrderSerializer, NotificationSerializer, ChatMessageSerializer
 
@@ -9,7 +10,12 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        return (
+            Order.objects.filter(user=self.request.user)
+            .exclude(Q(order_type='treatment') & Q(linked_treatment_booking__isnull=True))
+            .exclude(Q(order_type='hostel') & Q(linked_hostel_booking__isnull=True))
+            .order_by('-created_at', '-id')
+        )
 
     @action(detail=True, methods=['get'])
     def track(self, request, pk=None):
@@ -26,10 +32,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         order = self.get_object()
         if request.method == 'GET':
             messages = order.chat_messages.all()
-            serializer = ChatMessageSerializer(messages, many=True)
+            serializer = ChatMessageSerializer(messages, many=True, context={'request': request})
             return Response(serializer.data)
         elif request.method == 'POST':
-            serializer = ChatMessageSerializer(data=request.data)
+            serializer = ChatMessageSerializer(data=request.data, context={'request': request})
             if serializer.is_valid():
                 serializer.save(order=order, sender=request.user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
