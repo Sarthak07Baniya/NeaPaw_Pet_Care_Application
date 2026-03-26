@@ -49,6 +49,23 @@ const ProfileHome = ({ navigation }) => {
             await authService.logout();
             dispatch(logoutSuccess());
             dispatch(resetEverything());
+
+            let rootNavigation = navigation;
+            while (rootNavigation?.getParent?.()) {
+              rootNavigation = rootNavigation.getParent();
+            }
+
+            rootNavigation?.reset?.({
+              index: 0,
+              routes: [
+                {
+                  name: "authStack",
+                  state: {
+                    routes: [{ name: "Welcome" }],
+                  },
+                },
+              ],
+            });
           },
         },
       ]
@@ -78,9 +95,9 @@ const ProfileHome = ({ navigation }) => {
 
   const menuItems = [
     { id: 1, title: "Edit Profile", icon: "edit", route: "EditProfile" },
-    { id: 2, title: "Orders", icon: "shopping-bag", route: "OrdersStack" },
-    { id: 3, title: "Favourite Items", icon: "heart", route: "FavouriteItems" },
-    { id: 4, title: "Shipping Address", icon: "map-pin", route: "ShippingAddress" },
+    { id: 2, title: "My Pets", icon: "grid", route: "MyPets" },
+    { id: 3, title: "Orders", icon: "shopping-bag", route: "OrdersStack" },
+    { id: 4, title: "Favourite Items", icon: "heart", route: "FavouriteItems" },
     { id: 5, title: "Reviews", icon: "star", route: "ReviewsHome" },
     { id: 6, title: "Notifications", icon: "bell", route: "NotificationsHome" },
     { id: 7, title: "About Us", icon: "info", route: "AboutUs" },
