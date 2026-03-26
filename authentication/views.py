@@ -61,7 +61,10 @@ class LoginView(APIView):
                     "refresh": str(refresh),
                 }
             })
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {"error": "Username or password is incorrect"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
