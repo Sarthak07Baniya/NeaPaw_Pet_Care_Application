@@ -70,6 +70,7 @@ const Owner = ({ navigation }) => {
           : currentPetInfo.spicie === "cat"
             ? "Cat"
             : currentPetInfo.spicie,
+      photo: currentPetInfo.photoURL || null,
       weight: currentPetInfo.weight ? parseFloat(currentPetInfo.weight) : null,
     };
 

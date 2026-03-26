@@ -1,28 +1,50 @@
 import { Feather } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import OfferCard from '../../components/ui/OfferCard/OfferCard';
 import ProductCard from '../../components/ui/ProductCard/ProductCard';
 import ServiceCard from '../../components/ui/ServiceCard/ServiceCard';
+import { fetchPets } from '../../redux/slice/myPetSlice';
 import { fetchOffers, fetchProducts, selectOffers, selectProducts } from '../../redux/slice/shoppingSlice';
 import { resolveMediaUrl } from '../../services/api';
+import { favouriteService } from '../../services/favouriteService';
 import { servicesSections } from '../../utils/appData';
 
 const Home = ({ navigation }) => {
   const dispatch = useDispatch();
-  const currentPet = useSelector((state) => state.myPet.petData);
+  const currentPetId = useSelector((state) => state.myPet.currentPetId);
+  const myPets = useSelector((state) => state.myPet.myPets) || [];
+  const currentPet = myPets.find((pet) => pet.id === currentPetId) || myPets[0] || null;
   const userName = useSelector((state) => state.myPet.currentPetInfo?.ownerName) || 'Pet Parent';
   const latestOffers = useSelector(selectOffers) || [];
   const bestSellingItems = (useSelector(selectProducts) || []).slice(0, 6);
   const [refreshing, setRefreshing] = useState(false);
+  const [favouriteIds, setFavouriteIds] = useState([]);
 
   useEffect(() => {
     loadData();
   }, [dispatch]);
 
+  const loadFavourites = useCallback(async () => {
+    const items = await favouriteService.getFavouriteItems();
+    setFavouriteIds(items.map((item) => item.id));
+  }, []);
+
+  useEffect(() => {
+    loadFavourites();
+  }, [loadFavourites]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFavourites();
+    }, [loadFavourites])
+  );
+
   const loadData = () => {
+    dispatch(fetchPets());
     dispatch(fetchOffers());
     dispatch(fetchProducts());
   };
@@ -84,6 +106,11 @@ const Home = ({ navigation }) => {
     });
   };
 
+  const handleToggleFavourite = async (product) => {
+    const result = await favouriteService.toggleFavourite(product);
+    setFavouriteIds(result.items.map((item) => item.id));
+  };
+
   const handleSeeAllOffers = () => {
     navigation.navigate('ShoppingStack', {
       screen: 'ShoppingHome',
@@ -132,6 +159,9 @@ const Home = ({ navigation }) => {
         reviews={item.reviews_count || item.reviews || 0}
         category={item.category}
         imageUrl={resolveMediaUrl(item.images?.find((image) => image.is_primary)?.image || item.images?.[0]?.image)}
+        showFavoriteButton
+        isFavorite={favouriteIds.includes(item.id)}
+        onToggleFavorite={() => handleToggleFavourite(item)}
         onPress={() => handleProductPress(item)}
       />
     </View>
@@ -165,7 +195,7 @@ const Home = ({ navigation }) => {
             {currentPet && (
               <View style={styles.petInfo}>
                 <Feather name="heart" size={16} color="#FF6B9D" />
-                <Text style={styles.petName}>{currentPet.petName}</Text>
+                <Text style={styles.petName}>{currentPet.name}</Text>
               </View>
             )}
           </View>
