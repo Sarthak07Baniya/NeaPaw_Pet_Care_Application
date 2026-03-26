@@ -1,9 +1,5 @@
 import { useIsFocused } from "@react-navigation/native";
-import {
-  launchCameraAsync,
-  PermissionStatus,
-  useCameraPermissions,
-} from "expo-image-picker";
+import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -25,40 +21,29 @@ const Photo = () => {
     (state) => state.myPet.currentPetInfo.photoURL
   );
   const isFocused = useIsFocused();
-  const [cameraPermissionInformation, requestPermission] =
-    useCameraPermissions();
-
-  async function verifyPermissions() {
-    if (cameraPermissionInformation.status === PermissionStatus.UNDETERMINED) {
-      const permissionResponse = await requestPermission();
-      return permissionResponse.granted;
-    }
-
-    if (cameraPermissionInformation.status === PermissionStatus.DENIED) {
-      Alert.alert(
-        "Insufficient Permissions!",
-        "You need to grant camera permissions to use this app."
-      );
-      return false;
-    }
-    return true;
-  }
 
   const pickImage = async () => {
-    const hasPermission = await verifyPermissions();
-    if (!hasPermission) {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
       return Alert.alert(
         "Insufficient Permissions!",
-        "You need to grant camera permissions to use this app."
+        "You need to grant gallery permissions to use this app."
       );
     }
-    const image = await launchCameraAsync({
+
+    const image = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
     });
-    dispatch(setPetImage(image.uri));
-    setImage(image.uri);
+    if (image.canceled || !image.assets?.length) {
+      return;
+    }
+    const imageUri = image.assets[0].uri;
+    dispatch(setPetImage(imageUri));
+    setImage(imageUri);
   };
 
   useEffect(() => {
@@ -75,7 +60,7 @@ const Photo = () => {
         ) : (
           <Image source={dog} style={styles.image} />
         )}
-        {!image && <Text style={styles.photoText}>Take a Photo</Text>}
+        {!image && <Text style={styles.photoText}>Choose from Gallery</Text>}
       </View>
     </Pressable>
   );

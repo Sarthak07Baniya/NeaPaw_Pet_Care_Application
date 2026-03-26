@@ -103,6 +103,9 @@ const myPetSlice = createSlice({
       state.currentPetInfo.name = action.payload.name;
       state.currentPetInfo.birthDate = action.payload.birthDate;
     },
+    setPetImage: (state, action) => {
+      state.currentPetInfo.photoURL = action.payload;
+    },
     setGenderBreedWeight: (state, action) => {
       state.currentPetInfo.gender = action.payload.gender;
       state.currentPetInfo.breed = action.payload.breed;
@@ -152,6 +155,7 @@ export const {
   setSelectedDate,
   setPetSpicie,
   setpetNameAndBirthDate,
+  setPetImage,
   setGenderBreedWeight,
   setOwnerName,
   fillPetInfo,
