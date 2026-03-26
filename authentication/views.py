@@ -1,8 +1,10 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_yasg.utils import swagger_auto_schema
 from .serializers import (
     RegisterSerializer, 
     UserSerializer, 
@@ -36,6 +38,10 @@ class RegisterView(generics.CreateAPIView):
 class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = LoginSerializer
+    @swagger_auto_schema(
+        request_body=LoginSerializer,
+        responses={200: UserSerializer}
+    )
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -60,6 +66,7 @@ class LoginView(APIView):
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_object(self):
         return self.request.user
@@ -68,13 +75,18 @@ class LogoutView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
+        refresh_token = request.data.get("refresh")
+
+        if not refresh_token:
+            return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
         try:
-            refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            pass
+
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
 
 class PasswordResetRequestView(APIView):
     permission_classes = (permissions.AllowAny,)
