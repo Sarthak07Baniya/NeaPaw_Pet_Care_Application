@@ -190,7 +190,7 @@ const TreatmentHome = ({ navigation }) => {
               </View>
               <View style={styles.servicePrice}>
                 <Text style={styles.priceText}>
-                  Rs {selectedTreatmentType.base_price}
+                  Rs. {selectedTreatmentType.base_price}
                 </Text>
                 <Feather
                   name="check-circle"

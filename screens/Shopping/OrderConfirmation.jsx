@@ -17,7 +17,33 @@ const OrderConfirmation = ({ route, navigation }) => {
   };
 
   const handleTrackOrder = () => {
-    navigation.navigate('OrdersStack');
+    const rootNavigation = navigation.getParent?.();
+    const tabNavigation = rootNavigation?.getParent?.();
+
+    if (tabNavigation) {
+      tabNavigation.navigate('Home', {
+        screen: 'OrdersStack',
+        params: {
+          screen: 'OrderTracking',
+          params: {
+            filterType: 'shopping',
+          },
+        },
+      });
+      return;
+    }
+
+    if (rootNavigation) {
+      rootNavigation.navigate('OrdersStack', {
+        screen: 'OrderTracking',
+        params: {
+          filterType: 'shopping',
+        },
+      });
+      return;
+    }
+
+    navigation.navigate('ShoppingHome');
   };
 
   return (
@@ -43,7 +69,7 @@ const OrderConfirmation = ({ route, navigation }) => {
           
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Total Amount</Text>
-            <Text style={styles.detailValue}>₹{total}</Text>
+            <Text style={styles.detailValue}>Rs. {total}</Text>
           </View>
           
           <View style={styles.detailRow}>

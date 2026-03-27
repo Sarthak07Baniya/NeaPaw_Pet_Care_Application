@@ -35,7 +35,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
 
       <View style={styles.details}>
         <Text style={styles.name} numberOfLines={2}>{product?.name || 'Unknown Product'}</Text>
-        <Text style={styles.price}>₹{product.price}</Text>
+        <Text style={styles.price}>Rs. {product.price}</Text>
         
         <View style={styles.quantityContainer}>
           <TouchableOpacity
@@ -67,7 +67,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           <Feather name="trash-2" size={18} color="#FF6B9D" />
         </TouchableOpacity>
         
-        <Text style={styles.subtotal}>₹{subtotal}</Text>
+        <Text style={styles.subtotal}>Rs. {subtotal}</Text>
       </View>
     </View>
   );

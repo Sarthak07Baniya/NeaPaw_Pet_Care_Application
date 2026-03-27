@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import CartItem from '../../components/ui/CartItem/CartItem';
 import { fetchCart, removeFromCart, selectCartItems, selectCartTotal, updateCartItem } from '../../redux/slice/cartSlice';
@@ -21,6 +21,19 @@ const ShoppingCart = ({ navigation }) => {
   const handleUpdateQuantity = (productId, quantity) => {
     const item = cartItems.find((cartItem) => (cartItem.product?.id || cartItem.productId) === productId);
     if (item) {
+      const stockQuantity = Number(item?.product?.stock_quantity || 0);
+      const isOutOfStock = !item?.product?.in_stock || stockQuantity <= 0;
+
+      if (isOutOfStock) {
+        Alert.alert('Out of stock', 'This product is currently out of stock.');
+        return;
+      }
+
+      if (quantity > stockQuantity) {
+        Alert.alert('Stock limit reached', `Only ${stockQuantity} unit${stockQuantity === 1 ? '' : 's'} available in stock.`);
+        return;
+      }
+
       dispatch(updateCartItem({ itemId: item.id, quantity }));
     }
   };
@@ -72,22 +85,22 @@ const ShoppingCart = ({ navigation }) => {
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>₹{cartTotal}</Text>
+            <Text style={styles.summaryValue}>Rs. {cartTotal}</Text>
           </View>
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Delivery Fee</Text>
-            <Text style={styles.summaryValue}>₹{deliveryFee}</Text>
+            <Text style={styles.summaryValue}>Rs. {deliveryFee}</Text>
           </View>
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Tax (5%)</Text>
-            <Text style={styles.summaryValue}>₹{tax}</Text>
+            <Text style={styles.summaryValue}>Rs. {tax}</Text>
           </View>
           
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₹{total}</Text>
+            <Text style={styles.totalValue}>Rs. {total}</Text>
           </View>
         </View>
       </ScrollView>
@@ -96,7 +109,7 @@ const ShoppingCart = ({ navigation }) => {
       <View style={styles.bottomBar}>
         <View style={styles.totalSection}>
           <Text style={styles.totalText}>Total</Text>
-          <Text style={styles.totalAmount}>₹{total}</Text>
+          <Text style={styles.totalAmount}>Rs. {total}</Text>
         </View>
         <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
           <Text style={styles.checkoutText}>Proceed to Checkout</Text>

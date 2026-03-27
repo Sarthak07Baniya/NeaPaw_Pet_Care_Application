@@ -8,7 +8,7 @@ const CouponCard = ({ coupon, onApply, isApplied = false }) => {
     if (discountType === 'percentage') {
       return `${discount}% OFF`;
     } else if (discountType === 'fixed') {
-      return `₹${discount} OFF`;
+      return `Rs. ${discount} OFF`;
     } else {
       return 'FREE SHIPPING';
     }
@@ -26,7 +26,7 @@ const CouponCard = ({ coupon, onApply, isApplied = false }) => {
         <Text style={styles.code}>{code}</Text>
         <Text style={styles.description}>{description}</Text>
         {minOrder > 0 && (
-          <Text style={styles.minOrder}>Min order: ₹{minOrder}</Text>
+          <Text style={styles.minOrder}>Min order: Rs. {minOrder}</Text>
         )}
         <Text style={styles.validity}>Valid until {validUntil}</Text>
       </View>

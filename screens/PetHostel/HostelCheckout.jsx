@@ -47,7 +47,7 @@ const HostelCheckout = ({ navigation }) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: true,
       quality: 0.8,
     });
@@ -89,6 +89,11 @@ const HostelCheckout = ({ navigation }) => {
   const treatmentsTotal = additionalTreatments.reduce((sum, t) => sum + t.price, 0);
   const tax = Math.round((roomPrice + serviceFee + treatmentsTotal) * 0.05);
   const total = roomPrice + serviceFee + treatmentsTotal + tax;
+
+  const formatHostelOrderId = (value) => {
+    if (!value) return value;
+    return String(value).replace(/^ORD-/i, 'HOSTEL-');
+  };
 
   const navigateToOrders = () => {
     const rootNavigation = navigation.getParent?.();
@@ -162,10 +167,12 @@ const HostelCheckout = ({ navigation }) => {
       .unwrap()
       .then((result) => {
         dispatch(resetHostelSelection());
-        const orderNumber = result?.order_number || result?.order?.order_number || result?.order || result?.id;
+        const orderNumber = formatHostelOrderId(
+          result?.order_number || result?.order?.order_number || result?.order || result?.id
+        );
         Alert.alert(
           'Booking Confirmed!',
-          `Your hostel booking has been confirmed. Order ID: ${orderNumber}`,
+          `Your hostel booking has been confirmed. Order ID: #${orderNumber}`,
           [{ text: 'OK', onPress: navigateToOrders }]
         );
       })
@@ -315,27 +322,27 @@ const HostelCheckout = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Payment Summary</Text>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Room ({days} {days === 1 ? 'day' : 'days'})</Text>
-            <Text style={styles.priceValue}>₹{roomPrice}</Text>
+            <Text style={styles.priceValue}>Rs. {roomPrice}</Text>
           </View>
           {serviceFee > 0 && (
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>{selectedServiceType.name}</Text>
-              <Text style={styles.priceValue}>₹{serviceFee}</Text>
+              <Text style={styles.priceValue}>Rs. {serviceFee}</Text>
             </View>
           )}
           {additionalTreatments.map((treatment) => (
             <View key={treatment.id} style={styles.priceRow}>
               <Text style={styles.priceLabel}>{treatment.name}</Text>
-              <Text style={styles.priceValue}>₹{treatment.price}</Text>
+              <Text style={styles.priceValue}>Rs. {treatment.price}</Text>
             </View>
           ))}
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tax (5%)</Text>
-            <Text style={styles.priceValue}>₹{tax}</Text>
+            <Text style={styles.priceValue}>Rs. {tax}</Text>
           </View>
           <View style={[styles.priceRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₹{total}</Text>
+            <Text style={styles.totalValue}>Rs. {total}</Text>
           </View>
         </View>
 
@@ -360,7 +367,7 @@ const HostelCheckout = ({ navigation }) => {
       {/* Confirm Button */}
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmBooking}>
-          <Text style={styles.confirmText}>Confirm Booking - ₹{total}</Text>
+          <Text style={styles.confirmText}>Confirm Booking - Rs. {total}</Text>
         </TouchableOpacity>
       </View>
     </View>

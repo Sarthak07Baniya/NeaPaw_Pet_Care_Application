@@ -155,7 +155,7 @@ const HostelHome = ({ navigation }) => {
                 </View>
               </View>
               <View style={styles.roomPrice}>
-                <Text style={styles.priceText}>₹{room.price_per_day}</Text>
+                <Text style={styles.priceText}>Rs. {room.price_per_day}</Text>
                 <Text style={styles.perDay}>/day</Text>
                 {selectedRoom?.id === room.id && (
                   <Feather name="check-circle" size={20} color="#FF6B9D" style={styles.checkIcon} />
@@ -208,7 +208,7 @@ const HostelHome = ({ navigation }) => {
                 <Text style={styles.serviceTypeName}>{type.name}</Text>
                 <Text style={styles.serviceTypeDesc}>{type.description}</Text>
                 {type.additionalFee > 0 && (
-                  <Text style={styles.additionalFee}>+₹{type.additionalFee}</Text>
+                  <Text style={styles.additionalFee}>+Rs. {type.additionalFee}</Text>
                 )}
               </View>
               {selectedServiceType?.id === type.id && (
@@ -223,17 +223,17 @@ const HostelHome = ({ navigation }) => {
           <View style={styles.section}>
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>Room ({days} {days === 1 ? 'day' : 'days'})</Text>
-              <Text style={styles.priceValue}>₹{parseFloat(selectedRoom.price_per_day) * days}</Text>
+              <Text style={styles.priceValue}>Rs. {parseFloat(selectedRoom.price_per_day) * days}</Text>
             </View>
             {selectedServiceType && selectedServiceType.additionalFee > 0 && (
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>{selectedServiceType.name}</Text>
-                <Text style={styles.priceValue}>₹{selectedServiceType.additionalFee}</Text>
+                <Text style={styles.priceValue}>Rs. {selectedServiceType.additionalFee}</Text>
               </View>
             )}
             <View style={[styles.priceRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>₹{totalPrice}</Text>
+              <Text style={styles.totalValue}>Rs. {totalPrice}</Text>
             </View>
           </View>
         )}

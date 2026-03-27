@@ -183,7 +183,7 @@ const Checkout = ({ navigation }) => {
             <View style={styles.appliedCouponContainer}>
               <Feather name="check-circle" size={20} color="#4CAF50" />
               <Text style={styles.appliedCouponText}>{appliedCouponData.code} applied!</Text>
-              <Text style={styles.discountAmount}>-₹{discount}</Text>
+              <Text style={styles.discountAmount}>-Rs. {discount}</Text>
             </View>
           ) : (
             <TouchableOpacity
@@ -214,25 +214,25 @@ const Checkout = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Order Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>₹{cartTotal}</Text>
+            <Text style={styles.summaryValue}>Rs. {cartTotal}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Delivery Fee</Text>
-            <Text style={styles.summaryValue}>₹{deliveryFee}</Text>
+            <Text style={styles.summaryValue}>Rs. {deliveryFee}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Tax (5%)</Text>
-            <Text style={styles.summaryValue}>₹{tax}</Text>
+            <Text style={styles.summaryValue}>Rs. {tax}</Text>
           </View>
           {discount > 0 && (
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, styles.discountLabel]}>Discount</Text>
-              <Text style={[styles.summaryValue, styles.discountValue]}>-₹{discount}</Text>
+              <Text style={[styles.summaryValue, styles.discountValue]}>-Rs. {discount}</Text>
             </View>
           )}
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₹{total}</Text>
+            <Text style={styles.totalValue}>Rs. {total}</Text>
           </View>
         </View>
       </ScrollView>
@@ -240,7 +240,7 @@ const Checkout = ({ navigation }) => {
       {/* Place Order Button */}
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
-          <Text style={styles.placeOrderText}>Place Order - ₹{total}</Text>
+          <Text style={styles.placeOrderText}>Place Order - Rs. {total}</Text>
         </TouchableOpacity>
       </View>
     </View>

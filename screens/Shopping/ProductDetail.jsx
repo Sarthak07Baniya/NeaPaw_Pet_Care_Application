@@ -217,7 +217,7 @@ const ProductDetail = ({ route, navigation }) => {
             <Text style={styles.reviewsText}>({product.reviews_count || product.reviews || 0} reviews)</Text>
           </View>
 
-          <Text style={styles.price}>₹{product.price}</Text>
+          <Text style={styles.price}>Rs. {product.price}</Text>
           <Text style={[styles.stockText, isOutOfStock ? styles.outOfStockText : styles.inStockText]}>
             {isOutOfStock
               ? 'Out of Stock'

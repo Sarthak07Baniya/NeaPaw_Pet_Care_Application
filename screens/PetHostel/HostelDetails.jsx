@@ -53,7 +53,7 @@ const HostelDetails = ({ navigation }) => {
             >
               <View style={styles.treatmentInfo}>
                 <Text style={styles.treatmentName}>{treatment.name}</Text>
-                <Text style={styles.treatmentPrice}>₹{treatment.price}</Text>
+                <Text style={styles.treatmentPrice}>Rs. {treatment.price}</Text>
               </View>
               {isTreatmentSelected(treatment.id) && (
                 <Feather name="check-circle" size={20} color="#FF6B9D" />

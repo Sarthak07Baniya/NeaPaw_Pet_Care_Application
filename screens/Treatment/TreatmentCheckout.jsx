@@ -176,21 +176,21 @@ const TreatmentCheckout = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Payment Summary</Text>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Service Price</Text>
-            <Text style={styles.priceValue}>₹{servicePrice}</Text>
+            <Text style={styles.priceValue}>Rs. {servicePrice}</Text>
           </View>
           {serviceFee > 0 && (
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>{selectedServiceType?.name || 'Service'} Fee</Text>
-              <Text style={styles.priceValue}>₹{serviceFee}</Text>
+              <Text style={styles.priceValue}>Rs. {serviceFee}</Text>
             </View>
           )}
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tax (5%)</Text>
-            <Text style={styles.priceValue}>₹{tax}</Text>
+            <Text style={styles.priceValue}>Rs. {tax}</Text>
           </View>
           <View style={[styles.priceRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₹{total}</Text>
+            <Text style={styles.totalValue}>Rs. {total}</Text>
           </View>
         </View>
       </ScrollView>
@@ -198,7 +198,7 @@ const TreatmentCheckout = ({ navigation }) => {
       {/* Confirm Button */}
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmBooking}>
-          <Text style={styles.confirmText}>Confirm Booking - ₹{total}</Text>
+          <Text style={styles.confirmText}>Confirm Booking - Rs. {total}</Text>
         </TouchableOpacity>
       </View>
     </View>

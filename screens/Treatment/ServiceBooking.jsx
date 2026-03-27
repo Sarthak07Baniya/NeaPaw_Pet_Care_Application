@@ -89,7 +89,7 @@ const ServiceBooking = ({ navigation }) => {
                 <Text style={styles.serviceTypeName}>{type.name}</Text>
                 <Text style={styles.serviceTypeDesc}>{type.description}</Text>
                 {type.additionalFee > 0 && (
-                  <Text style={styles.additionalFee}>+₹{type.additionalFee}</Text>
+                  <Text style={styles.additionalFee}>+Rs. {type.additionalFee}</Text>
                 )}
               </View>
               {selectedServiceType?.id === type.id && (
@@ -147,17 +147,17 @@ const ServiceBooking = ({ navigation }) => {
           <View style={styles.section}>
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>Service Price</Text>
-              <Text style={styles.priceValue}>₹{selectedService?.base_price || 0}</Text>
+              <Text style={styles.priceValue}>Rs. {selectedService?.base_price || 0}</Text>
             </View>
             {selectedServiceType.additionalFee > 0 && (
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>{selectedServiceType.name} Fee</Text>
-                <Text style={styles.priceValue}>₹{selectedServiceType.additionalFee}</Text>
+                <Text style={styles.priceValue}>Rs. {selectedServiceType.additionalFee}</Text>
               </View>
             )}
             <View style={[styles.priceRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>₹{getTotalPrice()}</Text>
+              <Text style={styles.totalValue}>Rs. {getTotalPrice()}</Text>
             </View>
           </View>
         )}

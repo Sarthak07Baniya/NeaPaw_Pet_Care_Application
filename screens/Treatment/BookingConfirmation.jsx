@@ -2,7 +2,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 
 const BookingConfirmation = ({ route, navigation }) => {
-  const { bookingId, orderId, total } = route.params;
+  const { bookingId, orderId, orderNumber, total } = route.params;
+  const normalizedOrderNumber = typeof orderNumber === 'string' && orderNumber.trim()
+    ? orderNumber.trim()
+    : null;
+  const displayOrderId = normalizedOrderNumber
+    ? `#${normalizedOrderNumber.replace(/^#/, '')}`
+    : orderId || bookingId;
 
   const navigateToOrders = () => {
     const rootNavigation = navigation.getParent?.();
@@ -11,12 +17,23 @@ const BookingConfirmation = ({ route, navigation }) => {
     if (tabNavigation) {
       tabNavigation.navigate('Home', {
         screen: 'OrdersStack',
+        params: {
+          screen: 'OrderTracking',
+          params: {
+            filterType: 'treatment',
+          },
+        },
       });
       return;
     }
 
     if (rootNavigation) {
-      rootNavigation.navigate('OrdersStack');
+      rootNavigation.navigate('OrdersStack', {
+        screen: 'OrderTracking',
+        params: {
+          filterType: 'treatment',
+        },
+      });
       return;
     }
 
@@ -24,10 +41,6 @@ const BookingConfirmation = ({ route, navigation }) => {
   };
 
   const handleContinue = () => {
-    navigateToOrders();
-  };
-
-  const handleRateReview = () => {
     navigateToOrders();
   };
 
@@ -66,23 +79,18 @@ const BookingConfirmation = ({ route, navigation }) => {
         
         <View style={styles.detailsCard}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Booking ID</Text>
-            <Text style={styles.detailValue}>{bookingId}</Text>
+            <Text style={styles.detailLabel}>Order ID</Text>
+            <Text style={styles.detailValue}>{displayOrderId}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Total Amount</Text>
-            <Text style={styles.detailValueHighlight}>₹{total}</Text>
+            <Text style={styles.detailValueHighlight}>Rs. {total}</Text>
           </View>
         </View>
 
         <Text style={styles.infoText}>
           You will receive a confirmation email shortly with all the booking details.
         </Text>
-
-        <TouchableOpacity style={styles.rateButton} onPress={handleRateReview}>
-          <Feather name="star" size={20} color="#FF6B9D" />
-          <Text style={styles.rateButtonText}>Rate & Review</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity style={styles.chatButton} onPress={handleSupportChat}>
           <Feather name="message-circle" size={20} color="#FFFFFF" />
@@ -158,24 +166,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 20,
-  },
-  rateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FF6B9D',
-    marginBottom: 15,
-    width: '100%',
-  },
-  rateButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FF6B9D',
-    marginLeft: 8,
   },
   chatButton: {
     flexDirection: 'row',

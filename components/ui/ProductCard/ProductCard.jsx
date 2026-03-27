@@ -79,7 +79,7 @@ const ProductCard = ({
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.price}>₹{price}</Text>
+          <Text style={styles.price}>Rs. {price}</Text>
           <TouchableOpacity 
             style={[styles.addButton, isOutOfStock && styles.addButtonDisabled]} 
             activeOpacity={0.7}
