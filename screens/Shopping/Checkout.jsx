@@ -3,14 +3,16 @@ import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import CouponCard from '../../components/ui/CouponCard/CouponCard';
-import { clearCart, selectCartTotal } from '../../redux/slice/cartSlice';
+import { clearCart, fetchCart, selectCartItems, selectCartTotal } from '../../redux/slice/cartSlice';
 import { createOrderAsync } from '../../redux/slice/ordersSlice';
 import { getAppConfig } from '../../services/api';
+import { paymentService } from '../../services/paymentService';
 import { shoppingService } from '../../services/shoppingService';
 import { availableCoupons as staticCoupons, paymentMethods as staticPaymentMethods } from '../../utils/appData';
 
 const Checkout = ({ navigation }) => {
   const dispatch = useDispatch();
+  const cartItems = useSelector(selectCartItems);
   const cartTotal = useSelector(selectCartTotal);
   
   const [name, setName] = useState('');
@@ -23,6 +25,37 @@ const Checkout = ({ navigation }) => {
   const [coupons, setCoupons] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const navigateToShoppingOrders = () => {
+    const rootNavigation = navigation.getParent?.();
+    const tabNavigation = rootNavigation?.getParent?.();
+
+    if (tabNavigation) {
+      tabNavigation.navigate('Home', {
+        screen: 'OrdersStack',
+        params: {
+          screen: 'OrderTracking',
+          params: { filterType: 'shopping' },
+        },
+      });
+      return;
+    }
+
+    if (rootNavigation) {
+      rootNavigation.navigate('OrdersStack', {
+        screen: 'OrderTracking',
+        params: { filterType: 'shopping' },
+      });
+      return;
+    }
+
+    navigation.navigate('ShoppingHome');
+  };
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +101,10 @@ const Checkout = ({ navigation }) => {
   };
 
   const handlePlaceOrder = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (!name || !phone || !email || !address) {
       Alert.alert('Missing Information', 'Please fill in all fields');
       return;
@@ -77,37 +114,79 @@ const Checkout = ({ navigation }) => {
       return;
     }
 
-    const orderData = {
-      shipping_address: {
-        full_name: name,
-        phone,
-        address_line1: address,
-        city: 'City', // Placeholder
-        state: 'State', // Placeholder
-        postal_code: '00000', // Placeholder
-        country: 'Country'
-      },
-      payment_method: selectedPayment,
-      coupon_code: appliedCouponData ? appliedCouponData.code : null,
-      order_type: 'shopping',
-      subtotal: cartTotal,
-      tax,
-      shipping_fee: deliveryFee,
-      discount,
-    };
-
     try {
+      setIsSubmitting(true);
+      const latestCart = await dispatch(fetchCart()).unwrap();
+      const latestCartItems = Array.isArray(latestCart?.items) ? latestCart.items : [];
+      const latestCartTotal = Number(latestCart?.total || 0);
+
+      if (!latestCartItems.length || latestCartTotal <= 0) {
+        Alert.alert(
+          'Cart is empty',
+          'Your shopping cart is empty. Please add products before placing an order.',
+          [{ text: 'Go to Cart', onPress: () => navigation.goBack() }]
+        );
+        return;
+      }
+
+      const latestDeliveryFee = latestCartTotal > 0 ? 50 : 0;
+      const latestTax = Math.round(latestCartTotal * 0.05);
+      const latestDiscount = appliedCouponData ? Math.round(latestCartTotal * (appliedCouponData.discount / 100)) : 0;
+
+      const orderData = {
+        shipping_address: {
+          full_name: name,
+          phone,
+          address_line1: address,
+          city: 'City',
+          state: 'State',
+          postal_code: '00000',
+          country: 'Country'
+        },
+        payment_method: selectedPayment,
+        coupon_code: appliedCouponData ? appliedCouponData.code : null,
+        order_type: 'shopping',
+        subtotal: latestCartTotal,
+        tax: latestTax,
+        shipping_fee: latestDeliveryFee,
+        discount: latestDiscount,
+      };
+
       const resultAction = await dispatch(createOrderAsync(orderData));
       if (createOrderAsync.fulfilled.match(resultAction)) {
         const order = resultAction.payload;
         dispatch(clearCart());
-        navigation.navigate('OrderConfirmation', { orderId: order.order_number, total });
+
+        if (selectedPayment === 'esewa') {
+          const paymentResult = await paymentService.payWithEsewa(order.id);
+          if (paymentResult.success) {
+            navigation.navigate('OrderConfirmation', {
+              orderId: order.order_number,
+              total: Math.max(0, latestCartTotal + latestDeliveryFee + latestTax - latestDiscount),
+            });
+            return;
+          }
+
+          Alert.alert(
+            'Payment not completed',
+            'Your order was created, but eSewa payment was not completed. You can check it from My Orders.',
+            [{ text: 'View Orders', onPress: navigateToShoppingOrders }]
+          );
+          return;
+        }
+
+        navigation.navigate('OrderConfirmation', {
+          orderId: order.order_number,
+          total: Math.max(0, latestCartTotal + latestDeliveryFee + latestTax - latestDiscount),
+        });
       } else {
         Alert.alert("Error", resultAction.payload || "Failed to place order");
       }
     } catch (error) {
       console.error("Place order error:", error);
       Alert.alert("Error", "An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -239,7 +318,11 @@ const Checkout = ({ navigation }) => {
 
       {/* Place Order Button */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
+        <TouchableOpacity
+          style={[styles.placeOrderButton, (isSubmitting || !cartItems.length) && styles.placeOrderButtonDisabled]}
+          onPress={handlePlaceOrder}
+          disabled={isSubmitting || !cartItems.length}
+        >
           <Text style={styles.placeOrderText}>Place Order - Rs. {total}</Text>
         </TouchableOpacity>
       </View>
@@ -392,6 +475,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  placeOrderButtonDisabled: {
+    opacity: 0.6,
   },
   placeOrderText: {
     fontSize: 16,
