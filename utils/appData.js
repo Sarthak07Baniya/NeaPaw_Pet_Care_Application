@@ -93,7 +93,6 @@ export const additionalHostelTreatments = [
 
 export const paymentMethods = [
   { id: 'cod', name: 'Cash on Delivery', icon: 'dollar-sign' },
-  { id: 'khalti', name: 'Khalti', icon: 'credit-card' },
   { id: 'esewa', name: 'eSewa', icon: 'credit-card' },
 ];
 
