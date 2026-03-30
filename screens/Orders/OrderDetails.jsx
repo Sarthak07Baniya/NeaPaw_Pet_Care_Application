@@ -35,6 +35,23 @@ const OrderDetails = ({ route, navigation }) => {
       .replace(/[_-]+/g, ' ')
       .replace(/\b\w/g, (char) => char.toUpperCase())
       .trim();
+  const formatDateTimeValue = (dateValue, timeValue) => {
+    if (!dateValue && !timeValue) {
+      return '-';
+    }
+
+    const formattedDate = dateValue
+      ? new Date(dateValue).toLocaleDateString()
+      : '';
+    const formattedTime = timeValue
+      ? new Date(`1970-01-01T${timeValue}`).toLocaleTimeString([], {
+          hour: 'numeric',
+          minute: '2-digit',
+        })
+      : '';
+
+    return [formattedDate, formattedTime].filter(Boolean).join(' at ');
+  };
   const normalizedOrderStatus = normalizeStatus(order.status || 'pending');
   const canReviewPurchasedItems =
     orderType === 'shopping' &&
@@ -318,12 +335,26 @@ const OrderDetails = ({ route, navigation }) => {
           {orderType === 'treatment' && (
             <>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Order Type</Text>
+                <Text style={styles.detailLabel}>Booking Type</Text>
                 <Text style={styles.detailValue}>Treatment</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Status</Text>
-                <Text style={styles.detailValue}>{formatStatusLabel(order.status || 'pending')}</Text>
+                <Text style={styles.detailLabel}>Pet</Text>
+                <Text style={styles.detailValue}>{order.treatment_pet_name || '-'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Service</Text>
+                <Text style={styles.detailValue}>{order.treatment_service_name || order.treatment_name || '-'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Service Type</Text>
+                <Text style={styles.detailValue}>{order.treatment_service_type || '-'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Date & Time</Text>
+                <Text style={styles.detailValue}>
+                  {formatDateTimeValue(order.treatment_date, order.treatment_time)}
+                </Text>
               </View>
               {canReviewTreatment ? (
                 <View style={styles.treatmentReviewSection}>
