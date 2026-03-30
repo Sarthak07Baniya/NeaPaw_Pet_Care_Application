@@ -290,7 +290,8 @@ class OrderTrackingAdmin(admin.ModelAdmin):
 
     @admin.display(description='Status')
     def formatted_status(self, obj):
-        return str(obj.status or '').replace('_', ' ').title()
+        current_status = getattr(getattr(obj, 'order', None), 'status', None) or obj.status
+        return str(current_status or '').replace('_', ' ').title()
 
     @admin.display(description='Location')
     def display_location(self, obj):
@@ -306,8 +307,12 @@ class OrderTrackingAdmin(admin.ModelAdmin):
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
+        order = getattr(obj, 'order', None)
+        if order and obj.status and obj.status != order.status:
+            order.status = obj.status
+            order.save(update_fields=['status', 'updated_at'])
         if not obj.location:
-            shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+            shipping_address = getattr(order, 'shipping_address', None)
             obj.location = (getattr(shipping_address, 'address_line1', '') or '').strip()
         if not obj.message:
             obj.message = f"Order status updated to {str(obj.status or '').replace('_', ' ').title()}."
