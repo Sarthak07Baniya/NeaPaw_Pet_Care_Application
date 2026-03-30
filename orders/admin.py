@@ -65,22 +65,57 @@ class AdminReplyInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     """Admin configuration for Order model"""
-    list_display = ('order_number', 'user', 'status', 'payment_status', 'total', 'payment_method', 'created_at')
+    list_display = (
+        'order_number',
+        'user',
+        'shipping_full_name',
+        'shipping_phone',
+        'status',
+        'payment_status',
+        'total',
+        'payment_method',
+        'created_at',
+    )
     list_filter = ('status', 'payment_status', 'payment_method', 'created_at')
-    search_fields = ('order_number', 'user__email', 'user__username')
-    readonly_fields = ('order_number', 'order_type', 'created_at', 'updated_at')
+    search_fields = (
+        'order_number',
+        'user__email',
+        'user__username',
+        'shipping_address__full_name',
+        'shipping_address__phone',
+        'shipping_address__email',
+        'shipping_address__address_line1',
+    )
+    readonly_fields = (
+        'order_number',
+        'order_type',
+        'created_at',
+        'updated_at',
+        'shipping_full_name',
+        'shipping_phone',
+        'shipping_email',
+        'shipping_address_text',
+    )
     date_hierarchy = 'created_at'
     inlines = [OrderItemInline, OrderTrackingInline, UserChatMessageInline, AdminReplyInline]
     
     fieldsets = (
         ('Order Information', {
-            'fields': ('order_number', 'user', 'order_type', 'status')
+            'fields': (
+                'order_number',
+                'user',
+                'order_type',
+                'status',
+                'shipping_full_name',
+                'shipping_phone',
+                'shipping_email',
+            )
         }),
         ('Financials', {
             'fields': ('subtotal', 'discount', 'tax', 'shipping_fee', 'total')
         }),
         ('Delivery', {
-            'fields': ('payment_method', 'shipping_address', 'estimated_delivery')
+            'fields': ('payment_method', 'shipping_address_text', 'estimated_delivery')
         }),
         ('Payment Tracking', {
             'fields': ('payment_provider', 'payment_status', 'transaction_uuid', 'provider_reference', 'paid_at')
@@ -96,6 +131,34 @@ class OrderAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return shopping_only_queryset(queryset, request)
+
+    @admin.display(description='Full name')
+    def shipping_full_name(self, obj):
+        return getattr(obj.shipping_address, 'full_name', '-') or '-'
+
+    @admin.display(description='Phone number')
+    def shipping_phone(self, obj):
+        return getattr(obj.shipping_address, 'phone', '-') or '-'
+
+    @admin.display(description='Email')
+    def shipping_email(self, obj):
+        return getattr(obj.shipping_address, 'email', '-') or '-'
+
+    @admin.display(description='Shipping address')
+    def shipping_address_text(self, obj):
+        shipping_address = getattr(obj, 'shipping_address', None)
+        if not shipping_address:
+            return '-'
+
+        parts = [
+            shipping_address.address_line1,
+            shipping_address.address_line2,
+            shipping_address.city,
+            shipping_address.state,
+            shipping_address.postal_code,
+            shipping_address.country,
+        ]
+        return ', '.join([part for part in parts if part])
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == 'status':
