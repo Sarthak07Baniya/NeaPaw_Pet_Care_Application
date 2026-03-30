@@ -16,6 +16,8 @@ class Order(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
+        ('scheduled', 'Scheduled'),
+        ('in_progress', 'In Progress'),
         ('check_in', 'Check-in'),
         ('in_stay', 'In Stay'),
         ('check_out', 'Check-out'),

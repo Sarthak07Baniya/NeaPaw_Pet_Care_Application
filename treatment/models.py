@@ -21,10 +21,10 @@ class TreatmentBooking(models.Model):
     )
     
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
+        ('scheduled', 'Scheduled'),
+        ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='treatment_bookings')
@@ -34,7 +34,7 @@ class TreatmentBooking(models.Model):
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
     notes = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -51,18 +51,18 @@ class TreatmentBooking(models.Model):
 
     def _map_status_to_order_status(self):
         return {
-            'pending': 'pending',
             'confirmed': 'confirmed',
+            'scheduled': 'scheduled',
+            'in_progress': 'in_progress',
             'completed': 'completed',
-            'cancelled': 'cancelled',
-        }.get(self.status, 'pending')
+        }.get(self.status, 'confirmed')
 
     def _tracking_message_for_status(self):
         return {
-            'pending': 'Treatment booking has been placed successfully.',
             'confirmed': 'Treatment booking has been confirmed.',
+            'scheduled': 'Treatment booking has been scheduled.',
+            'in_progress': 'Treatment service is in progress.',
             'completed': 'Treatment service has been completed.',
-            'cancelled': 'Treatment booking has been cancelled.',
         }.get(self.status, 'Treatment booking has been updated.')
 
     def _sync_order(self, previous_status=None):
