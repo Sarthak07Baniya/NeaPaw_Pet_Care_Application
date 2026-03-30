@@ -5,6 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { useDispatch, useSelector } from 'react-redux';
 import { createTreatmentBooking, resetTreatmentSelection } from '../../redux/slice/treatmentSlice';
 import { getAppConfig } from '../../services/api';
+import { paymentService } from '../../services/paymentService';
 
 const TreatmentCheckout = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -46,6 +47,32 @@ const TreatmentCheckout = ({ navigation }) => {
   const tax = Math.round((servicePrice + serviceFee) * 0.05);
   const total = servicePrice + serviceFee + tax;
 
+  const navigateToTreatmentOrders = () => {
+    const rootNavigation = navigation.getParent?.();
+    const tabNavigation = rootNavigation?.getParent?.();
+
+    if (tabNavigation) {
+      tabNavigation.navigate('Home', {
+        screen: 'OrdersStack',
+        params: {
+          screen: 'OrderTracking',
+          params: { filterType: 'treatment' },
+        },
+      });
+      return;
+    }
+
+    if (rootNavigation) {
+      rootNavigation.navigate('OrdersStack', {
+        screen: 'OrderTracking',
+        params: { filterType: 'treatment' },
+      });
+      return;
+    }
+
+    navigation.navigate('TreatmentHome');
+  };
+
   const handleConfirmBooking = () => {
     if (!selectedPet || !selectedTreatmentType || !selectedService || !selectedServiceType || !selectedDate || !selectedTime) {
       Alert.alert('Missing Booking Details', 'Please complete the treatment booking details first.');
@@ -63,17 +90,34 @@ const TreatmentCheckout = ({ navigation }) => {
     const bookingData = {
       pet: selectedPet.id,
       treatment_type: selectedTreatmentType.id,
+      customer_name: name,
+      customer_phone: phone,
+      customer_email: email,
+      customer_address: address,
+      payment_method: selectedPayment,
       service_type:
         selectedServiceType.id === 'pick_up' ? 'pickup' : selectedServiceType.id,
       appointment_date: selectedDate,
       appointment_time: moment(selectedTime, ['hh:mm A', 'HH:mm', 'HH:mm:ss'], true).format('HH:mm:ss'),
-      notes: `Customer: ${name}, Phone: ${phone}, Email: ${email}, Address: ${address}, Payment: ${selectedPayment}`,
     };
 
     dispatch(createTreatmentBooking(bookingData))
       .unwrap()
-      .then((result) => {
+      .then(async (result) => {
         dispatch(resetTreatmentSelection());
+
+        if (selectedPayment === 'esewa' && result.order) {
+          const paymentResult = await paymentService.payWithEsewa(result.order);
+          if (!paymentResult.success) {
+            Alert.alert(
+              'Payment not completed',
+              'Your treatment booking was created, but eSewa payment was not completed. You can check it from My Orders.',
+              [{ text: 'View Orders', onPress: navigateToTreatmentOrders }]
+            );
+            return;
+          }
+        }
+
         navigation.navigate('BookingConfirmation', {
           bookingId: result.id,
           orderId: result.order,
