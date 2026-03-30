@@ -149,16 +149,13 @@ class OrderAdmin(admin.ModelAdmin):
         shipping_address = getattr(obj, 'shipping_address', None)
         if not shipping_address:
             return '-'
+        primary_address = (shipping_address.address_line1 or '').strip()
+        secondary_address = (shipping_address.address_line2 or '').strip()
 
-        parts = [
-            shipping_address.address_line1,
-            shipping_address.address_line2,
-            shipping_address.city,
-            shipping_address.state,
-            shipping_address.postal_code,
-            shipping_address.country,
-        ]
-        return ', '.join([part for part in parts if part])
+        if secondary_address:
+            return f"{primary_address}, {secondary_address}" if primary_address else secondary_address
+
+        return primary_address or '-'
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == 'status':
