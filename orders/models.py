@@ -16,10 +16,21 @@ class Order(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
-        ('packed', 'Packed'),
+        ('check_in', 'Check-in'),
+        ('in_stay', 'In Stay'),
+        ('check_out', 'Check-out'),
+        ('completed', 'Completed'),
         ('in_transit', 'In Transit'),
+        ('out_for_delivery', 'Out for Delivery'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+    )
+
+    PAYMENT_STATUS_CHOICES = (
+        ('unpaid', 'Unpaid'),
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
@@ -35,6 +46,11 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2)
     
     payment_method = models.CharField(max_length=50)
+    payment_provider = models.CharField(max_length=50, blank=True, null=True)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
+    transaction_uuid = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    provider_reference = models.CharField(max_length=100, blank=True, null=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -46,6 +62,9 @@ class Order(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-generate order number if not set"""
+        previous_status = None
+        if self.pk:
+            previous_status = Order.objects.filter(pk=self.pk).values_list('status', flat=True).first()
         if not self.order_number:
             import uuid
             from datetime import datetime
@@ -54,6 +73,8 @@ class Order(models.Model):
             unique_id = str(uuid.uuid4().hex)[:5].upper()
             self.order_number = f'ORD-{date_str}-{unique_id}'
         super().save(*args, **kwargs)
+        if previous_status != 'delivered' and self.status == 'delivered':
+            self.apply_delivery_stock_updates()
     
     def calculate_total(self):
         """Calculate and return order total"""
@@ -67,6 +88,21 @@ class Order(models.Model):
             message=message,
             location=location
         )
+
+    def apply_delivery_stock_updates(self):
+        """Decrease shopping product stock when an order is delivered."""
+        if self.order_type != 'shopping':
+            return
+
+        for item in self.items.select_related('product').all():
+            product = item.product
+            if not product:
+                continue
+
+            remaining_stock = max((product.stock_quantity or 0) - item.quantity, 0)
+            product.stock_quantity = remaining_stock
+            product.in_stock = remaining_stock > 0
+            product.save(update_fields=['stock_quantity', 'in_stock'])
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')

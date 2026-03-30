@@ -1,6 +1,13 @@
 from django.contrib import admin
 from .models import Order, OrderItem, OrderTracking, ChatMessage
 
+SHOPPING_STATUS_CHOICES = (
+    ('confirmed', 'Confirmed'),
+    ('in_transit', 'In Transit'),
+    ('out_for_delivery', 'Out for Delivery'),
+    ('delivered', 'Delivered'),
+)
+
 
 def shopping_only_queryset(queryset, request):
     resolver_match = getattr(request, 'resolver_match', None)
@@ -58,8 +65,8 @@ class AdminReplyInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     """Admin configuration for Order model"""
-    list_display = ('order_number', 'user', 'status', 'total', 'payment_method', 'created_at')
-    list_filter = ('status', 'payment_method', 'created_at')
+    list_display = ('order_number', 'user', 'status', 'payment_status', 'total', 'payment_method', 'created_at')
+    list_filter = ('status', 'payment_status', 'payment_method', 'created_at')
     search_fields = ('order_number', 'user__email', 'user__username')
     readonly_fields = ('order_number', 'order_type', 'created_at', 'updated_at')
     date_hierarchy = 'created_at'
@@ -75,17 +82,25 @@ class OrderAdmin(admin.ModelAdmin):
         ('Delivery', {
             'fields': ('payment_method', 'shipping_address', 'estimated_delivery')
         }),
+        ('Payment Tracking', {
+            'fields': ('payment_provider', 'payment_status', 'transaction_uuid', 'provider_reference', 'paid_at')
+        }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
     
-    actions = ['mark_confirmed', 'mark_in_transit', 'mark_delivered']
+    actions = ['mark_confirmed', 'mark_in_transit', 'mark_out_for_delivery', 'mark_delivered']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return shopping_only_queryset(queryset, request)
+
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        if db_field.name == 'status':
+            kwargs['choices'] = SHOPPING_STATUS_CHOICES
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
     
     def mark_confirmed(self, request, queryset):
         """Mark orders as confirmed"""
@@ -98,6 +113,12 @@ class OrderAdmin(admin.ModelAdmin):
         updated = queryset.update(status='in_transit')
         self.message_user(request, f'{updated} orders marked as in transit.')
     mark_in_transit.short_description = 'Mark selected orders as in transit'
+
+    def mark_out_for_delivery(self, request, queryset):
+        """Mark orders as out for delivery"""
+        updated = queryset.update(status='out_for_delivery')
+        self.message_user(request, f'{updated} orders marked as out for delivery.')
+    mark_out_for_delivery.short_description = 'Mark selected orders as out for delivery'
     
     def mark_delivered(self, request, queryset):
         """Mark orders as delivered"""
