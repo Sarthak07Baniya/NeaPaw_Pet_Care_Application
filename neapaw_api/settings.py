@@ -155,12 +155,7 @@ JAZZMIN_SETTINGS = {
             "icon": "fas fa-syringe",
             "permissions": ["pets.view_petvaccine"]
         }],
-        "shopping": [{
-            "name": "Products",
-            "url": "admin:shopping_product_changelist",
-            "icon": "fas fa-box-open",
-            "permissions": ["shopping.view_product"]
-        }],
+        "shopping": [],
         "orders": [],
     },
 
