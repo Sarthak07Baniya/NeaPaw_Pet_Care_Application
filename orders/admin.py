@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from .models import Order, OrderItem, OrderTracking, ChatMessage
 
 SHOPPING_STATUS_CHOICES = (
@@ -16,6 +17,28 @@ def shopping_only_queryset(queryset, request):
     return queryset
 
 
+class OrderTrackingInlineForm(forms.ModelForm):
+    status = forms.ChoiceField(choices=SHOPPING_STATUS_CHOICES, required=False)
+
+    class Meta:
+        model = OrderTracking
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        order = getattr(self.instance, 'order', None)
+        shipping_address = getattr(order, 'shipping_address', None)
+        location_value = ''
+        if shipping_address:
+            location_value = (shipping_address.address_line1 or '').strip()
+
+        if location_value and not self.initial.get('location'):
+            self.initial['location'] = location_value
+        if location_value and not self.instance.location:
+            self.fields['location'].initial = location_value
+
+
 class OrderItemInline(admin.TabularInline):
     """Inline for Order items"""
     model = OrderItem
@@ -27,9 +50,10 @@ class OrderItemInline(admin.TabularInline):
 class OrderTrackingInline(admin.TabularInline):
     """Inline for Order tracking"""
     model = OrderTracking
+    form = OrderTrackingInlineForm
     extra = 0
     readonly_fields = ('timestamp',)
-    fields = ('status', 'message', 'location', 'timestamp')
+    fields = ('status', 'location', 'timestamp')
 
 
 class UserChatMessageInline(admin.TabularInline):
@@ -201,6 +225,10 @@ class OrderAdmin(admin.ModelAdmin):
                 if not instance.sender_id:
                     instance.sender = request.user
                 instance.is_admin_reply = True
+            elif isinstance(instance, OrderTracking):
+                instance.location = self.shipping_address_text(form.instance)
+                if not instance.message:
+                    instance.message = f"Order status updated to {instance.get_status_display() if hasattr(instance, 'get_status_display') else instance.status}."
             instance.save()
         formset.save_m2m()
 
