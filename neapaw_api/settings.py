@@ -161,12 +161,7 @@ JAZZMIN_SETTINGS = {
             "icon": "fas fa-box-open",
             "permissions": ["shopping.view_product"]
         }],
-        "orders": [{
-            "name": "Shopping Orders",
-            "url": "admin:orders_order_changelist",
-            "icon": "fas fa-shopping-bag",
-            "permissions": ["orders.view_order"]
-        }],
+        "orders": [],
     },
 
     #"show_ui_builder": True, #Customize the admin portal
@@ -326,6 +321,13 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# eSewa UAT configuration
+ESEWA_PRODUCT_CODE = os.environ.get('ESEWA_PRODUCT_CODE', 'EPAYTEST')
+ESEWA_SECRET_KEY = os.environ.get('ESEWA_SECRET_KEY', '8gBm/:&EnhH.1/q')
+ESEWA_BASE_URL = os.environ.get('ESEWA_BASE_URL', 'https://rc-epay.esewa.com.np/api/epay/main/v2/form')
+ESEWA_STATUS_URL = os.environ.get('ESEWA_STATUS_URL', 'https://rc.esewa.com.np/api/epay/transaction/status/')
+APP_DEEP_LINK_SCHEME = os.environ.get('APP_DEEP_LINK_SCHEME', 'neapaw')
 
 
 SWAGGER_SETTINGS = {
