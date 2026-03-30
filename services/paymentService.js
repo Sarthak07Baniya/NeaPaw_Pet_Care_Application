@@ -5,6 +5,7 @@ const ESEWA_DEEP_LINK_PATH = "payments/esewa";
 const FALLBACK_ESEWA_CALLBACK_URL = "neapaw://payments/esewa";
 const VERIFY_RETRY_DELAY_MS = 2000;
 const VERIFY_RETRY_ATTEMPTS = 6;
+const PAYMENT_REQUEST_TIMEOUT_MS = 30000;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -86,12 +87,15 @@ export const paymentService = {
   verifyEsewa: async (orderId, transactionUuid) => {
     const response = await api.get(`orders/list/${orderId}/esewa/verify/`, {
       params: transactionUuid ? { transaction_uuid: transactionUuid } : undefined,
+      timeout: PAYMENT_REQUEST_TIMEOUT_MS,
     });
     return response.data;
   },
 
   getOrderPaymentState: async (orderId) => {
-    const response = await api.get(`orders/list/${orderId}/`);
+    const response = await api.get(`orders/list/${orderId}/`, {
+      timeout: PAYMENT_REQUEST_TIMEOUT_MS,
+    });
     return response.data;
   },
 
