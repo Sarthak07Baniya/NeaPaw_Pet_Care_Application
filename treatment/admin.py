@@ -2,6 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.urls import reverse
 from django.utils.html import format_html
+import re
 from .models import TreatmentType, TreatmentBooking, TreatmentReview, TreatmentChatMessage
 
 
@@ -49,22 +50,50 @@ class TreatmentTypeAdmin(admin.ModelAdmin):
 class TreatmentBookingAdmin(admin.ModelAdmin):
     """Admin configuration for TreatmentBooking model"""
     form = TreatmentBookingAdminForm
-    list_display = ('user', 'pet', 'treatment_type', 'appointment_date', 'appointment_time', 'service_type', 'status', 'price')
+    list_display = ('booking_id', 'user', 'pet', 'treatment_type', 'appointment_date', 'appointment_time', 'service_type', 'status', 'price')
     list_filter = ('status', 'service_type', 'appointment_date', 'created_at')
-    search_fields = ('user__email', 'pet__name', 'treatment_type__name')
-    readonly_fields = ('created_at', 'updated_at', 'linked_chat')
+    search_fields = (
+        'order__order_number',
+        'user__email',
+        'pet__name',
+        'treatment_type__name',
+        'order__shipping_address__full_name',
+        'order__shipping_address__phone',
+        'order__shipping_address__email',
+        'order__shipping_address__address_line1',
+    )
+    readonly_fields = (
+        'booking_id',
+        'customer_name',
+        'customer_phone',
+        'customer_email',
+        'customer_address',
+        'payment_method_display',
+        'created_at',
+        'updated_at',
+        'linked_chat',
+    )
     date_hierarchy = 'appointment_date'
     inlines = [TreatmentReviewInline]
     
     fieldsets = (
         ('Booking Information', {
-            'fields': ('user', 'pet', 'treatment_type')
+            'fields': (
+                'booking_id',
+                'user',
+                'pet',
+                'treatment_type',
+                'customer_name',
+                'customer_phone',
+                'customer_email',
+                'customer_address',
+            )
         }),
         ('Appointment Details', {
-            'fields': ('appointment_date', 'appointment_time', 'service_type', 'notes')
+            'fields': ('appointment_date', 'appointment_time', 'service_type')
         }),
         ('Status & Pricing', {
-            'fields': ('status', 'price', 'linked_chat')
+            'fields': ('status', 'price', 'payment_method_display', 'linked_chat')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -73,6 +102,40 @@ class TreatmentBookingAdmin(admin.ModelAdmin):
     )
     
     actions = ['confirm_bookings', 'complete_bookings', 'cancel_bookings']
+
+    def booking_id(self, obj):
+        return obj.order.order_number if obj.order_id else 'Not linked yet'
+    booking_id.short_description = 'Booking ID'
+
+    def _extract_from_notes(self, obj, label):
+        if not obj.notes:
+            return ''
+        match = re.search(rf'{label}:\s*([^,\n]+)', obj.notes)
+        return match.group(1).strip() if match else ''
+
+    def customer_name(self, obj):
+        shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+        return getattr(shipping_address, 'full_name', None) or self._extract_from_notes(obj, 'Customer') or '-'
+    customer_name.short_description = 'Full Name'
+
+    def customer_phone(self, obj):
+        shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+        return getattr(shipping_address, 'phone', None) or self._extract_from_notes(obj, 'Phone') or '-'
+    customer_phone.short_description = 'Phone Number'
+
+    def customer_email(self, obj):
+        shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+        return getattr(shipping_address, 'email', None) or self._extract_from_notes(obj, 'Email') or '-'
+    customer_email.short_description = 'Email'
+
+    def customer_address(self, obj):
+        shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+        return getattr(shipping_address, 'address_line1', None) or self._extract_from_notes(obj, 'Address') or '-'
+    customer_address.short_description = 'Address'
+
+    def payment_method_display(self, obj):
+        return getattr(getattr(obj, 'order', None), 'payment_method', None) or self._extract_from_notes(obj, 'Payment') or '-'
+    payment_method_display.short_description = 'Payment Method'
     
     def confirm_bookings(self, request, queryset):
         """Confirm selected bookings"""
