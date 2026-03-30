@@ -71,7 +71,7 @@ def _sync_order_from_esewa(order, transaction_uuid, provider_reference=None, pay
         order.payment_status = 'paid'
         if not order.paid_at:
             order.paid_at = timezone.now()
-        if order.order_type == 'shopping' and order.status == 'pending':
+        if order.order_type in {'shopping', 'treatment', 'hostel'} and order.status == 'pending':
             order.status = 'confirmed'
     elif normalized_status in {'PENDING', 'AMBIGUOUS'}:
         order.payment_status = 'pending'
@@ -89,6 +89,17 @@ def _sync_order_from_esewa(order, transaction_uuid, provider_reference=None, pay
             'updated_at',
         ]
     )
+
+    if normalized_status == 'COMPLETE':
+        linked_treatment_booking = getattr(order, 'linked_treatment_booking', None)
+        if linked_treatment_booking and linked_treatment_booking.status == 'pending':
+            linked_treatment_booking.status = 'confirmed'
+            linked_treatment_booking.save(update_fields=['status', 'updated_at'])
+
+        linked_hostel_booking = getattr(order, 'linked_hostel_booking', None)
+        if linked_hostel_booking and linked_hostel_booking.status == 'pending':
+            linked_hostel_booking.status = 'confirmed'
+            linked_hostel_booking.save(update_fields=['status', 'updated_at'])
 
 
 class AppSchemeHttpResponseRedirect(HttpResponseRedirect):
