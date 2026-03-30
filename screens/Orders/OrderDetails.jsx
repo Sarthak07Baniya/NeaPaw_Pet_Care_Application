@@ -9,6 +9,7 @@ import { adoptionService } from '../../services/adoptionService';
 const OrderDetails = ({ route, navigation }) => {
   const order = route?.params?.order || {};
   const orderType = order.order_type || order.type;
+  const isTreatmentBooking = orderType === 'treatment';
   const displayOrderId =
     orderType === 'hostel'
       ? String(order.order_number || order.id || '').replace(/^ORD-/i, 'HOSTEL-')
@@ -256,13 +257,15 @@ const OrderDetails = ({ route, navigation }) => {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Information</Text>
+          <Text style={styles.sectionTitle}>
+            {isTreatmentBooking ? 'Booking Information' : 'Order Information'}
+          </Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Order ID</Text>
+            <Text style={styles.infoLabel}>{isTreatmentBooking ? 'Booking ID' : 'Order ID'}</Text>
             <Text style={styles.infoValue}>{displayOrderId}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Order Date</Text>
+            <Text style={styles.infoLabel}>{isTreatmentBooking ? 'Booking Date' : 'Order Date'}</Text>
             <Text style={styles.infoValue}>
               {order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable'}
             </Text>
@@ -274,7 +277,9 @@ const OrderDetails = ({ route, navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Status</Text>
+          <Text style={styles.sectionTitle}>
+            {isTreatmentBooking ? 'Booking Status' : 'Order Status'}
+          </Text>
           <View style={styles.timeline}>{renderStatusTimeline()}</View>
         </View>
 
