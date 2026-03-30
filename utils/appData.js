@@ -103,7 +103,8 @@ export const availableCoupons = [
 ];
 
 export const orderStatuses = {
-  shopping: ['Pending', 'Processing', 'Shipped', 'Delivered'],
+  shopping: ['Confirmed', 'In Transit', 'Out for Delivery', 'Delivered'],
   treatment: ['Confirmed', 'Scheduled', 'In Progress', 'Completed'],
   hostel: ['Confirmed', 'Check-in', 'In Stay', 'Check-out'],
+  adoption: ['Pending', 'Approved', 'Rejected'],
 };

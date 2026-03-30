@@ -1,28 +1,57 @@
 import { useIsFocused } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { useEffect } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrders, selectFilteredOrders, setOrderFilter } from '../../redux/slice/ordersSlice';
+import { fetchAdoptionApplications, selectAdoptionApplications } from '../../redux/slice/adoptionSlice';
 
-const OrderTracking = ({ navigation }) => {
+const OrderTracking = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const orders = useSelector(selectFilteredOrders) || [];
+  const adoptionApplications = useSelector(selectAdoptionApplications) || [];
   const selectedFilter = useSelector((state) => state.orders.selectedFilter);
   const isFocused = useIsFocused();
+  const requestedFilter = route?.params?.filterType;
+
+  const formatDisplayOrderId = (item) => {
+    const rawValue = item?.order_number || item?.id;
+    if ((item?.order_type || item?.type) === 'hostel') {
+      return String(rawValue).replace(/^ORD-/i, 'HOSTEL-');
+    }
+    return rawValue;
+  };
 
   useEffect(() => {
     if (isFocused) {
+      dispatch(setOrderFilter(requestedFilter || 'all'));
       dispatch(fetchOrders());
+      dispatch(fetchAdoptionApplications());
     }
-  }, [dispatch, isFocused]);
+  }, [dispatch, isFocused, requestedFilter]);
 
   const filters = [
     { id: 'all', label: 'All Orders' },
     { id: 'shopping', label: 'Shopping' },
     { id: 'treatment', label: 'Treatment' },
     { id: 'hostel', label: 'Hostel' },
+    { id: 'adoption', label: 'Adoption' },
   ];
+
+  const mappedApplications = adoptionApplications.map((application) => ({
+    ...application,
+    id: `adoption-${application.id}`,
+    order_type: 'adoption',
+    total: 0,
+    created_at: application.submitted_at,
+    order_number: `APP-${application.id}`,
+  }));
+  const visibleOrders =
+    selectedFilter === 'all'
+      ? [...orders, ...mappedApplications]
+      : selectedFilter === 'adoption'
+        ? mappedApplications
+        : orders;
 
   const getOrderIcon = (type) => {
     switch (type) {
@@ -32,6 +61,8 @@ const OrderTracking = ({ navigation }) => {
         return 'activity';
       case 'hostel':
         return 'home';
+      case 'adoption':
+        return 'heart';
       default:
         return 'package';
     }
@@ -41,15 +72,25 @@ const OrderTracking = ({ navigation }) => {
     switch (String(status || '').toLowerCase()) {
       case 'delivered':
       case 'completed':
+      case 'approved':
         return '#4CAF50';
+      case 'rejected':
+      case 'cancelled':
+        return '#EF4444';
       case 'confirmed':
-      case 'packed':
       case 'in_transit':
+      case 'out_for_delivery':
         return '#FF6B9D';
       default:
         return '#FFA500';
     }
   };
+
+  const formatStatusLabel = (value) =>
+    String(value || '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+      .trim();
 
   const renderOrderCard = ({ item }) => {
     const orderType = item.order_type || item.type;
@@ -65,13 +106,13 @@ const OrderTracking = ({ navigation }) => {
             <Feather name={getOrderIcon(orderType)} size={24} color="#FF6B9D" />
           </View>
           <View style={styles.orderInfo}>
-            <Text style={styles.orderId}>{item.order_number || item.id}</Text>
+            <Text style={styles.orderId}>{formatDisplayOrderId(item)}</Text>
             <Text style={styles.orderDate}>
               {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Date unavailable'}
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>{item.status || 'pending'}</Text>
+            <Text style={styles.statusText}>{formatStatusLabel(item.status || 'pending')}</Text>
           </View>
         </View>
 
@@ -86,6 +127,11 @@ const OrderTracking = ({ navigation }) => {
           )}
           {orderType === 'hostel' && (
             <Text style={styles.orderDescription}>Pet hostel booking • Rs. {item.total}</Text>
+          )}
+          {orderType === 'adoption' && (
+            <Text style={styles.orderDescription}>
+              Adoption application • {item.pet_details?.name || item.pet?.name || 'Pet'}
+            </Text>
           )}
         </View>
 
@@ -111,7 +157,12 @@ const OrderTracking = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterContainer}
+      >
         {filters.map((filter) => (
           <TouchableOpacity
             key={filter.id}
@@ -131,10 +182,10 @@ const OrderTracking = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       <FlatList
-        data={orders}
+        data={visibleOrders}
         renderItem={renderOrderCard}
         keyExtractor={(item) => String(item.id || item.order_number)}
         contentContainerStyle={styles.listContent}
@@ -142,7 +193,11 @@ const OrderTracking = ({ navigation }) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Feather name="inbox" size={60} color="#CCCCCC" />
-            <Text style={styles.emptyText}>No orders found</Text>
+            <Text style={styles.emptyText}>
+              {selectedFilter === 'all'
+                ? 'No orders found'
+                : `No ${filters.find((filter) => filter.id === selectedFilter)?.label?.toLowerCase() || 'orders'} found`}
+            </Text>
           </View>
         }
       />
@@ -157,19 +212,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F8F8',
   },
+  filterScroll: {
+    flexGrow: 0,
+    maxHeight: 56,
+    backgroundColor: '#FFFFFF',
+  },
   filterContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+    paddingRight: 24,
   },
   filterTab: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    height: 36,
     borderRadius: 20,
     marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterTabActive: {
     backgroundColor: '#FF6B9D',
