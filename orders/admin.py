@@ -39,6 +39,28 @@ class OrderTrackingInlineForm(forms.ModelForm):
             self.fields['location'].initial = location_value
 
 
+class OrderTrackingAdminForm(forms.ModelForm):
+    status = forms.ChoiceField(choices=SHOPPING_STATUS_CHOICES, required=False)
+
+    class Meta:
+        model = OrderTracking
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        order = getattr(self.instance, 'order', None)
+        shipping_address = getattr(order, 'shipping_address', None)
+        location_value = ''
+        if shipping_address:
+            location_value = (shipping_address.address_line1 or '').strip()
+
+        if location_value and not self.initial.get('location'):
+            self.initial['location'] = location_value
+        if location_value and not self.instance.location:
+            self.fields['location'].initial = location_value
+
+
 class OrderItemInline(admin.TabularInline):
     """Inline for Order items"""
     model = OrderItem
@@ -251,10 +273,12 @@ class OrderItemAdmin(admin.ModelAdmin):
 @admin.register(OrderTracking)
 class OrderTrackingAdmin(admin.ModelAdmin):
     """Admin configuration for OrderTracking model"""
-    list_display = ('order', 'status', 'message', 'location', 'timestamp')
+    form = OrderTrackingAdminForm
+    list_display = ('order', 'formatted_status', 'display_location', 'timestamp')
     list_filter = ('status', 'timestamp')
-    search_fields = ('order__order_number', 'message', 'location')
+    search_fields = ('order__order_number', 'location', 'order__shipping_address__address_line1')
     readonly_fields = ('timestamp',)
+    fields = ('order', 'status', 'location', 'timestamp')
     date_hierarchy = 'timestamp'
 
     def get_queryset(self, request):
@@ -263,6 +287,31 @@ class OrderTrackingAdmin(admin.ModelAdmin):
         if resolver_match and resolver_match.url_name and resolver_match.url_name.endswith('_changelist'):
             return queryset.filter(order__order_type='shopping')
         return queryset
+
+    @admin.display(description='Status')
+    def formatted_status(self, obj):
+        return str(obj.status or '').replace('_', ' ').title()
+
+    @admin.display(description='Location')
+    def display_location(self, obj):
+        if obj.location:
+            return obj.location
+
+        shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+        return (getattr(shipping_address, 'address_line1', '') or '-').strip() or '-'
+
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        if db_field.name == 'status':
+            kwargs['choices'] = SHOPPING_STATUS_CHOICES
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.location:
+            shipping_address = getattr(getattr(obj, 'order', None), 'shipping_address', None)
+            obj.location = (getattr(shipping_address, 'address_line1', '') or '').strip()
+        if not obj.message:
+            obj.message = f"Order status updated to {str(obj.status or '').replace('_', ' ').title()}."
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(ChatMessage)
