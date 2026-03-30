@@ -1,7 +1,24 @@
 from django.contrib import admin
+from django import forms
 from django.urls import reverse
 from django.utils.html import format_html
 from .models import TreatmentType, TreatmentBooking, TreatmentReview, TreatmentChatMessage
+
+
+TREATMENT_STATUS_CHOICES = (
+    ('confirmed', 'Confirmed'),
+    ('scheduled', 'Scheduled'),
+    ('in_progress', 'In Progress'),
+    ('completed', 'Completed'),
+)
+
+
+class TreatmentBookingAdminForm(forms.ModelForm):
+    status = forms.ChoiceField(choices=TREATMENT_STATUS_CHOICES, required=False)
+
+    class Meta:
+        model = TreatmentBooking
+        fields = '__all__'
 
 
 class TreatmentReviewInline(admin.TabularInline):
@@ -31,6 +48,7 @@ class TreatmentTypeAdmin(admin.ModelAdmin):
 @admin.register(TreatmentBooking)
 class TreatmentBookingAdmin(admin.ModelAdmin):
     """Admin configuration for TreatmentBooking model"""
+    form = TreatmentBookingAdminForm
     list_display = ('user', 'pet', 'treatment_type', 'appointment_date', 'appointment_time', 'service_type', 'status', 'price')
     list_filter = ('status', 'service_type', 'appointment_date', 'created_at')
     search_fields = ('user__email', 'pet__name', 'treatment_type__name')
