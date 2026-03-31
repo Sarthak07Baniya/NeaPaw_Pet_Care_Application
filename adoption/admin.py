@@ -9,36 +9,6 @@ class AdoptionReviewInline(admin.TabularInline):
     can_delete = False
 
 
-class UserAdoptionChatInline(admin.TabularInline):
-    model = AdoptionChatMessage
-    extra = 0
-    can_delete = False
-    verbose_name = "User Message"
-    verbose_name_plural = "User Messages"
-    fields = ('sender', 'message', 'timestamp')
-    readonly_fields = ('sender', 'message', 'timestamp')
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.filter(is_admin_reply=False).order_by('timestamp')
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class AdminAdoptionReplyInline(admin.TabularInline):
-    model = AdoptionChatMessage
-    extra = 1
-    verbose_name = "Admin Reply"
-    verbose_name_plural = "Admin Replies"
-    fields = ('message', 'timestamp')
-    readonly_fields = ('timestamp',)
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.filter(is_admin_reply=True).order_by('timestamp')
-
-
 @admin.register(AdoptionPet)
 class AdoptionPetAdmin(admin.ModelAdmin):
     """Admin configuration for AdoptionPet model"""
@@ -87,7 +57,7 @@ class AdoptionApplicationAdmin(admin.ModelAdmin):
     search_fields = ('user__email', 'pet__name', 'city', 'state')
     readonly_fields = ('submitted_at', 'reviewed_at')
     date_hierarchy = 'submitted_at'
-    inlines = [AdoptionReviewInline, UserAdoptionChatInline, AdminAdoptionReplyInline]
+    inlines = [AdoptionReviewInline]
     
     fieldsets = (
         ('Application Information', {
@@ -136,19 +106,6 @@ class AdoptionApplicationAdmin(admin.ModelAdmin):
             updated += 1
         self.message_user(request, f'{updated} applications rejected.')
     reject_applications.short_description = 'Reject selected applications'
-
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for deleted_object in formset.deleted_objects:
-            deleted_object.delete()
-        for instance in instances:
-            if isinstance(instance, AdoptionChatMessage):
-                if not instance.sender_id:
-                    instance.sender = request.user
-                instance.is_admin_reply = True
-            instance.save()
-        formset.save_m2m()
-
 
 @admin.register(AdoptionReview)
 class AdoptionReviewAdmin(admin.ModelAdmin):
