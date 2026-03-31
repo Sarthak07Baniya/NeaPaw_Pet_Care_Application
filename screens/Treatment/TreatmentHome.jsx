@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -31,6 +31,34 @@ const getTreatmentIcon = (iconName) => {
     default:
       return "activity";
   }
+};
+
+const TreatmentIcon = ({ treatmentType, color = "#FF6B9D", size = 20, style }) => {
+  if (treatmentType?.icon_image) {
+    return (
+      <Image
+        source={{ uri: treatmentType.icon_image }}
+        style={[
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+          },
+          style,
+        ]}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  return (
+    <Feather
+      name={getTreatmentIcon(treatmentType?.icon)}
+      size={size}
+      color={color}
+      style={style}
+    />
+  );
 };
 
 const TreatmentHome = ({ navigation }) => {
@@ -155,11 +183,7 @@ const TreatmentHome = ({ navigation }) => {
                   onPress={() => handleTreatmentTypeSelect(treatmentType)}
                 >
                   <View style={styles.dropdownItemContent}>
-                    <Feather
-                      name={getTreatmentIcon(treatmentType.icon)}
-                      size={20}
-                      color="#FF6B9D"
-                    />
+                    <TreatmentIcon treatmentType={treatmentType} size={20} />
                     <View style={styles.dropdownItemInfo}>
                       <Text style={styles.dropdownItemText}>
                         {treatmentType.name}
@@ -183,7 +207,13 @@ const TreatmentHome = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Selected Service</Text>
             <View style={[styles.serviceCard, styles.serviceCardSelected]}>
               <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{selectedTreatmentType.name}</Text>
+                <View style={styles.selectedServiceHeader}>
+                  <TreatmentIcon treatmentType={selectedTreatmentType} size={24} style={styles.selectedServiceIcon} />
+                  <Text style={styles.serviceName}>{selectedTreatmentType.name}</Text>
+                </View>
+                <Text style={styles.serviceDescription}>
+                  {selectedTreatmentType.description || "No description added yet."}
+                </Text>
                 <Text style={styles.serviceDuration}>
                   {selectedTreatmentType.duration_minutes} mins
                 </Text>
@@ -337,6 +367,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#2C2C2C",
     marginBottom: 4,
+  },
+  selectedServiceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  selectedServiceIcon: {
+    marginRight: 8,
+  },
+  serviceDescription: {
+    fontSize: 13,
+    color: "#666666",
+    marginBottom: 6,
   },
   serviceDuration: {
     fontSize: 13,
