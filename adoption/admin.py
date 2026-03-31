@@ -52,16 +52,16 @@ class AdoptionPetAdmin(admin.ModelAdmin):
 @admin.register(AdoptionApplication)
 class AdoptionApplicationAdmin(admin.ModelAdmin):
     """Admin configuration for AdoptionApplication model"""
-    list_display = ('user', 'pet', 'status', 'previously_owned_pets', 'submitted_at', 'reviewed_at')
+    list_display = ('adoption_id', 'user', 'pet', 'status', 'previously_owned_pets', 'submitted_at', 'reviewed_at')
     list_filter = ('status', 'previously_owned_pets', 'submitted_at')
-    search_fields = ('user__email', 'pet__name', 'city', 'state')
-    readonly_fields = ('submitted_at', 'reviewed_at')
+    search_fields = ('id', 'user__email', 'pet__name', 'city', 'state')
+    readonly_fields = ('adoption_id', 'submitted_at', 'reviewed_at')
     date_hierarchy = 'submitted_at'
     inlines = [AdoptionReviewInline]
     
     fieldsets = (
         ('Application Information', {
-            'fields': ('user', 'pet', 'status', 'full_name', 'email', 'phone')
+            'fields': ('adoption_id', 'user', 'pet', 'status', 'full_name', 'email', 'phone')
         }),
         ('Living Address', {
             'fields': ('address_line1', 'city', 'state', 'postal_code')
@@ -79,6 +79,10 @@ class AdoptionApplicationAdmin(admin.ModelAdmin):
     )
     
     actions = ['approve_applications', 'reject_applications']
+
+    def adoption_id(self, obj):
+        return f'ADOPTION-{obj.id}' if obj.id else '-'
+    adoption_id.short_description = 'Adoption ID'
     
     def approve_applications(self, request, queryset):
         """Approve selected applications"""
