@@ -1,7 +1,5 @@
 from django.contrib import admin
 from .models import HostelBooking, HostelReview, HostelChatMessage
-from django.urls import reverse
-from django.utils.html import format_html
 
 
 class HostelReviewInline(admin.TabularInline):
@@ -17,7 +15,7 @@ class HostelBookingAdmin(admin.ModelAdmin):
     list_display = ('user', 'pet', 'room', 'check_in_date', 'check_out_date', 'service_type', 'status', 'total_price')
     list_filter = ('status', 'service_type', 'diet_type', 'communicable_disease', 'check_in_date')
     search_fields = ('user__email', 'pet__name', 'room__name')
-    readonly_fields = ('selected_additional_treatments', 'created_at', 'updated_at', 'linked_chat')
+    readonly_fields = ('selected_additional_treatments', 'created_at', 'updated_at')
     date_hierarchy = 'check_in_date'
     inlines = [HostelReviewInline]
     
@@ -37,7 +35,7 @@ class HostelBookingAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('Status & Pricing', {
-            'fields': ('status', 'total_price', 'linked_chat')
+            'fields': ('status', 'total_price')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -52,13 +50,13 @@ class HostelBookingAdmin(admin.ModelAdmin):
         return ', '.join(treatments) if treatments else '-'
     selected_additional_treatments.short_description = 'Additional Treatments'
 
-    def linked_chat(self, obj):
-        if not obj.order:
-            return '-'
-        url = f"{reverse('admin:hostel_hostelchatmessage_changelist')}?order__id__exact={obj.order.id}"
-        order_number = str(obj.order.order_number).replace('ORD-', 'HOSTEL-')
-        return format_html('<a href="{}">Open Hostel Chat for #{}</a>', url, order_number)
-    linked_chat.short_description = 'Support Chat'
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        if db_field.name == 'status':
+            allowed_statuses = {'confirmed', 'check_in', 'in_stay', 'check_out'}
+            kwargs['choices'] = [
+                choice for choice in db_field.choices if choice[0] in allowed_statuses
+            ]
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
     
     def confirm_bookings(self, request, queryset):
         """Confirm selected bookings"""
