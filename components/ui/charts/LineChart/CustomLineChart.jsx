@@ -7,53 +7,58 @@ import { useIsFocused } from "@react-navigation/native";
 import { getAllMedicalbyPetId } from "../../../../database/tables/medical";
 import { petService } from "../../../../services/petService";
 
+const getLastSixMonthLabels = () => {
+  const lastSixMonths = [];
+  for (let i = 0; i < 6; i++) {
+    lastSixMonths.push(moment().subtract(i, "month").format("MMM"));
+  }
+  return lastSixMonths.reverse();
+};
+
 const CustomLineChart = ({ title }) => {
   const screenWidth = Dimensions.get("window").width * 0.8;
   const isFocused = useIsFocused();
   const [data, setData] = React.useState([0, 0, 0, 0, 0, 0]);
-
-  const [dataLabels, setDataLabels] = useState();
+  const [dataLabels, setDataLabels] = useState(getLastSixMonthLabels());
   const currentPetId = useSelector((state) => state.myPet.currentPetId);
 
   useEffect(() => {
-    setDataLabels([]);
     setData([0, 0, 0, 0, 0, 0]);
-    const lastSixMont = [];
-    for (let i = 0; i < 6; i++) {
-      lastSixMont.push(moment().subtract(i, "month").format("MMM"));
+    const lastSixMonths = getLastSixMonthLabels();
+    setDataLabels(lastSixMonths);
+
+    if (!isFocused || !currentPetId) {
+      return;
     }
-    setDataLabels(lastSixMont.reverse());
 
-    if (isFocused && currentPetId) {
-      const loadChartData =
-        title === "Medical History Stats"
-          ? getAllMedicalbyPetId(currentPetId)
-          : petService.getVaccines(currentPetId);
+    const loadChartData =
+      title === "Medical History Stats"
+        ? getAllMedicalbyPetId(currentPetId)
+        : petService.getVaccines(currentPetId);
 
-      loadChartData
-        .then((res) => {
-          const allMontData = [0, 0, 0, 0, 0, 0];
-          res.forEach((element) => {
-            const parsedDate = moment(
-              element.date,
-              [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"],
-              true
-            );
-            if (!parsedDate.isValid()) {
-              return;
-            }
-            const date = parsedDate.format("MMM");
-            const index = lastSixMont.indexOf(date);
-            if (index !== -1) {
-              allMontData[index]++;
-            }
-          });
-          setData(allMontData);
-        })
-        .catch((err) => {
-          console.log(err);
+    loadChartData
+      .then((res) => {
+        const allMontData = [0, 0, 0, 0, 0, 0];
+        res.forEach((element) => {
+          const parsedDate = moment(
+            element.date,
+            [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"],
+            true
+          );
+          if (!parsedDate.isValid()) {
+            return;
+          }
+          const date = parsedDate.format("MMM");
+          const index = lastSixMonths.indexOf(date);
+          if (index !== -1) {
+            allMontData[index]++;
+          }
         });
-    }
+        setData(allMontData);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, [isFocused, currentPetId]);
 
   return (

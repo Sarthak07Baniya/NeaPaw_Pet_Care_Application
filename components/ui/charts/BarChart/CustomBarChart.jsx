@@ -7,25 +7,33 @@ import { getAllWeightbyPetId } from "../../../../database/tables/weight";
 import { getAllVetbyPetId } from "../../../../database/tables/vet";
 import { useSelector, useDispatch } from "react-redux";
 
+const getLastSixMonthLabels = () => {
+  const lastSixMonths = [];
+  for (let i = 0; i < 6; i++) {
+    lastSixMonths.push(moment().subtract(i, "month").format("MMM"));
+  }
+  return lastSixMonths.reverse();
+};
+
 const CustomBarChart = ({ title }) => {
   const screenWidth = Dimensions.get("window").width * 0.8;
   const isFocused = useIsFocused();
   const [weightData, setWeightData] = useState([]);
   const [vetData, setVetData] = useState([]);
-  const [dataLabels, setDataLabels] = useState();
+  const [dataLabels, setDataLabels] = useState(getLastSixMonthLabels());
   const currentPetId = useSelector((state) => state.myPet.currentPetId);
 
   useEffect(() => {
-    setDataLabels([]);
     setWeightData([0, 0, 0, 0, 0, 0]);
     setVetData([0, 0, 0, 0, 0, 0]);
-    const lastSixMont = [];
-    for (let i = 0; i < 6; i++) {
-      lastSixMont.push(moment().subtract(i, "month").format("MMM"));
-    }
-    setDataLabels(lastSixMont.reverse());
+    const lastSixMonths = getLastSixMonthLabels();
+    setDataLabels(lastSixMonths);
 
-    if ((title === "Weight Stats" || title === "Weight History") && isFocused && currentPetId) {
+    if (!isFocused || !currentPetId) {
+      return;
+    }
+
+    if (title === "Weight Stats" || title === "Weight History") {
       getAllWeightbyPetId(currentPetId)
         .then((res) => {
           const allMontData = [0, 0, 0, 0, 0, 0];
@@ -40,7 +48,7 @@ const CustomBarChart = ({ title }) => {
               return;
             }
             const date = parsedDate.format("MMM");
-            const index = lastSixMont.indexOf(date);
+            const index = lastSixMonths.indexOf(date);
             if (index !== -1) {
               monthDataCounter[index]++;
               allMontData[index] += parseFloat(element.weight);
@@ -59,7 +67,7 @@ const CustomBarChart = ({ title }) => {
         .catch((err) => {
           console.log(err);
         });
-    } else if (title === "Vet Appoitments" && isFocused && currentPetId) {
+    } else if (title === "Vet Appoitments") {
       getAllVetbyPetId(currentPetId)
         .then((res) => {
           const allMontData = [0, 0, 0, 0, 0, 0];
@@ -73,7 +81,7 @@ const CustomBarChart = ({ title }) => {
               return;
             }
             const date = parsedDate.format("MMM");
-            const index = lastSixMont.indexOf(date);
+            const index = lastSixMonths.indexOf(date);
             if (index !== -1) {
               allMontData[index] += 1;
             }

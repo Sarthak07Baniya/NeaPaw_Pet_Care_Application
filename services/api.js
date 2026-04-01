@@ -94,6 +94,21 @@ api.interceptors.response.use(
 
     // Handle different error types
     if (!error.response) {
+      const canRetryWithDefaultBaseUrl =
+        originalRequest &&
+        !originalRequest._baseUrlRetry &&
+        !/^https?:\/\//i.test(originalRequest.url || '') &&
+        originalRequest.baseURL !== DEFAULT_BASE_URL;
+
+      if (canRetryWithDefaultBaseUrl) {
+        originalRequest._baseUrlRetry = true;
+        originalRequest.baseURL = DEFAULT_BASE_URL;
+        currentBaseUrl = DEFAULT_BASE_URL;
+
+        console.log(`Retrying request with fallback API URL: ${DEFAULT_BASE_URL}`);
+        return api(originalRequest);
+      }
+
       // Network error
       console.error('Network Error:', error.message);
       return Promise.reject({
