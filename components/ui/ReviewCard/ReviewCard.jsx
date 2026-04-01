@@ -2,7 +2,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 
 const ReviewCard = ({ review }) => {
-  const { userName, rating, comment, date } = review;
+  const userName = review?.user_name || review?.userName || "Pet Parent";
+  const rating = Number(review?.rating || 0);
+  const comment = review?.comment || "";
+  const dateValue = review?.created_at || review?.date;
+  const date = dateValue ? new Date(dateValue).toLocaleDateString() : "";
 
   const renderStars = () => {
     const stars = [];

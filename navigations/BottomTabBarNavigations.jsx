@@ -5,6 +5,7 @@ import {
     CustomMainHeaderLeft,
     CustomMainHeaderRight,
 } from "../components/ui/CustomHeader/CustomMainHeader";
+import CustomTabBar from "../components/ui/CustomTabBar/CustomTabBar";
 import Home from "../screens/Home/Home";
 import MyPet from "../screens/MyPet/MyPet";
 import AdoptionNavigation from "./AdoptionNavigation";
@@ -16,12 +17,9 @@ import ProfileNavigation from "./ProfileNavigation";
 import ShoppingNavigation from "./ShoppingNavigation";
 import TreatmentNavigation from "./TreatmentNavigation";
 
-import CustomTabBar from "../components/ui/CustomTabBar/CustomTabBar";
-
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Home Stack Navigator (includes Home and all service navigations)
 const HomeStack = () => {
   return (
     <Stack.Navigator>
@@ -70,7 +68,7 @@ const HomeStack = () => {
   );
 };
 
-const BottomTabBarNavigations = ({ navigation }) => {
+const BottomTabBarNavigations = () => {
   return (
     <Tab.Navigator
       tabBar={(props) => <CustomTabBar {...props} />}
@@ -81,7 +79,6 @@ const BottomTabBarNavigations = ({ navigation }) => {
           elevation: 0,
         },
       }}
-
     >
       <Tab.Screen
         name="Home"
@@ -93,8 +90,8 @@ const BottomTabBarNavigations = ({ navigation }) => {
         component={MyPet}
         options={({ navigation }) => ({
           headerStyle: {
-            shadowColor: "transparent", // this covers iOS
-            elevation: 0, // this covers Android
+            shadowColor: "transparent",
+            elevation: 0,
             height: 120,
           },
           headerTitleStyle: {

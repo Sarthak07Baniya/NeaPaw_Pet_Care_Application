@@ -75,6 +75,10 @@ const myPetSlice = createSlice({
       state.currentPetInfo = {
         ...state.currentPetInfo,
         ...action.payload.data,
+        ownerName:
+          action.payload.data?.ownerName ??
+          action.payload.data?.owner_name ??
+          state.currentPetInfo.ownerName,
       };
       state.currentPetId = action.payload.id;
       state.currentPetInfo.id = action.payload.id;
@@ -83,6 +87,10 @@ const myPetSlice = createSlice({
       state.currentPetInfo = {
         ...state.currentPetInfo,
         ...action.payload,
+        ownerName:
+          action.payload?.ownerName ??
+          action.payload?.owner_name ??
+          state.currentPetInfo.ownerName,
       };
       state.currentPetId = action.payload.id;
     },

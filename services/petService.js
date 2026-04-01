@@ -19,6 +19,9 @@ export const petService = {
       // Handle image upload if present
       const formData = new FormData();
       Object.keys(petData).forEach(key => {
+        if (key === 'ownerName') {
+          return;
+        }
         if (key === 'photo' && petData[key]) {
           formData.append('photo', {
             uri: petData[key],
@@ -35,7 +38,10 @@ export const petService = {
           'Content-Type': 'multipart/form-data',
         },
       });
-      return response.data;
+      return {
+        ...response.data,
+        ownerName: petData.ownerName || response.data.ownerName,
+      };
     } catch (error) {
       console.error("Add pet error:", error);
       throw error;

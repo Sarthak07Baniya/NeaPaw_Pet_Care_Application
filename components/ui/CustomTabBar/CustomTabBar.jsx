@@ -5,24 +5,23 @@ import {
   View
 } from "react-native";
 
-// Temporary mock icon component
 const Ionicons = ({ name, size, color }) => {
   const iconMap = {
-    'home': '🏠',
-    'home-outline': '🏠',
-    'paw': '🐾',
-    'paw-outline': '🐾',
-    'time': '⏰',
-    'time-outline': '⏰',
-    'fitness': '💪',
-    'fitness-outline': '💪',
-    'grid': '☰',
-    'grid-outline': '☰',
+    home: "🏠",
+    "home-outline": "🏠",
+    paw: "🐾",
+    "paw-outline": "🐾",
+    time: "⏰",
+    "time-outline": "⏰",
+    fitness: "💪",
+    "fitness-outline": "💪",
+    grid: "☰",
+    "grid-outline": "☰",
   };
-  
+
   return (
-    <Text style={{ fontSize: size || 24, color: color || '#000' }}>
-      {iconMap[name] || '•'}
+    <Text style={{ fontSize: size || 24, color: color || "#000" }}>
+      {iconMap[name] || "•"}
     </Text>
   );
 };
@@ -36,8 +35,8 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name;
+              ? options.title
+              : route.name;
 
         const isFocused = state.index === index;
 
@@ -137,10 +136,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.34,
     shadowRadius: 6.27,
     elevation: 10,
-    // position: "absolute",
-    // bottom: 0,
     paddingHorizontal: 15,
-    paddingVertical:  11,
+    paddingVertical: 11,
     paddingBottom: 21,
   },
   button: {
@@ -158,6 +155,9 @@ const styles = StyleSheet.create({
     height: 55,
     borderRadius: 10,
     backgroundColor: "#FEE8DC",
+  },
+  icon: {
+    marginBottom: 4,
   },
 });
 

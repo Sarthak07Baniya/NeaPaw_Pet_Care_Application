@@ -2,11 +2,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 
 const OrderConfirmation = ({ route, navigation }) => {
-  const { orderId, total } = route.params;
-  
-  const estimatedDelivery = new Date();
-  estimatedDelivery.setDate(estimatedDelivery.getDate() + 3);
-  const deliveryDate = estimatedDelivery.toLocaleDateString('en-IN', {
+  const { orderId, total, estimatedDelivery } = route.params;
+
+  const deliveryDateSource = estimatedDelivery ? new Date(estimatedDelivery) : new Date();
+  if (!estimatedDelivery) {
+    deliveryDateSource.setDate(deliveryDateSource.getDate() + 3);
+  }
+  const deliveryDate = deliveryDateSource.toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

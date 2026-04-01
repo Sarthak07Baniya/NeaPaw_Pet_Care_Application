@@ -10,12 +10,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 import ApiConfigScreen from "../screens/Settings/ApiConfigScreen";
 import { loginSuccess, logoutSuccess } from "../redux/slice/authSlice";
-import { fetchPets, setPetData, setSelectedDate } from "../redux/slice/myPetSlice";
+import { fetchPets, setOwnerName, setPetData, setSelectedDate } from "../redux/slice/myPetSlice";
+import { registerDevicePushToken } from "../utils/notifications";
 import AuthNavigations from "./AuthNavigation";
 import BottomTabBarNavigations from "./BottomTabBarNavigations";
 import StartingScreensNavigations from "./StartingScreensNavigations";
 
 SplashScreen.preventAutoHideAsync();
+const OWNER_NAME_KEY = "neapaw_owner_name";
 
 const Stack = createStackNavigator();
 
@@ -55,6 +57,7 @@ const MainNavigations = () => {
       try {
         const token = await AsyncStorage.getItem("token");
         const userJson = await AsyncStorage.getItem("neapaw_current_user");
+        const ownerName = await AsyncStorage.getItem(OWNER_NAME_KEY);
         const user = userJson ? JSON.parse(userJson) : null;
 
         if (!token) {
@@ -63,6 +66,9 @@ const MainNavigations = () => {
           return;
         }
 
+        if (ownerName) {
+          dispatch(setOwnerName(ownerName));
+        }
         dispatch(loginSuccess({ token, user }));
       } catch (error) {
         console.warn(error);
@@ -86,6 +92,14 @@ const MainNavigations = () => {
 
     hydrateAuthenticatedState();
   }, [appIsReady, isAuthenticated, hydrateAuthenticatedState]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    registerDevicePushToken().catch((error) => {
+      console.log("Push token registration skipped:", error?.message || error);
+    });
+  }, [isAuthenticated]);
 
   const activeRootScreen = useMemo(() => {
     if (!isAuthenticated) return "authStack";

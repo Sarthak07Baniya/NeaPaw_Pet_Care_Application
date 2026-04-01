@@ -1,8 +1,10 @@
+import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUser } from "../../redux/slice/authSlice";
 import { authService } from "../../services/authService";
+import { resolveMediaUrl } from "../../services/api";
 
 const EditProfile = () => {
   const dispatch = useDispatch();
@@ -12,6 +14,7 @@ const EditProfile = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
+  const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -20,7 +23,32 @@ const EditProfile = () => {
     setLastName(authUser?.last_name || "");
     setEmail(authUser?.email || "");
     setContactNumber(authUser?.contact_number || "");
+    setProfileImage(authUser?.profile_picture || null);
   }, [authUser]);
+
+  const getProfileImageUri = (value) => {
+    if (!value) return null;
+    if (/^(file|content):\/\//i.test(value)) return value;
+    return resolveMediaUrl(value);
+  };
+
+  const pickProfileImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      return Alert.alert("Permission needed", "Please allow gallery access to upload a profile picture.");
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.length) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
 
   const handleSave = async () => {
     if (!username.trim() || !firstName.trim() || !lastName.trim() || !email.trim()) {
@@ -29,14 +57,24 @@ const EditProfile = () => {
 
     try {
       setLoading(true);
-      const updatedUser = await authService.updateProfile({
-        username: username.trim(),
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim().toLowerCase(),
-        contact_number: contactNumber,
-      });
+      const profileData = new FormData();
+      profileData.append("username", username.trim());
+      profileData.append("first_name", firstName.trim());
+      profileData.append("last_name", lastName.trim());
+      profileData.append("email", email.trim().toLowerCase());
+      profileData.append("contact_number", contactNumber || "");
+
+      if (profileImage && !/^https?:\/\//i.test(profileImage) && !profileImage.startsWith("/media/")) {
+        profileData.append("profile_picture", {
+          uri: profileImage,
+          type: "image/jpeg",
+          name: "profile-picture.jpg",
+        });
+      }
+
+      const updatedUser = await authService.updateProfile(profileData);
       dispatch(updateUser(updatedUser));
+      setProfileImage(updatedUser?.profile_picture || profileImage);
       Alert.alert("Profile updated", "Your profile details have been saved.");
     } catch (error) {
       Alert.alert("Unable to update profile", error?.message || "Please try again.");
@@ -48,6 +86,17 @@ const EditProfile = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
+        <View style={styles.imageSection}>
+          <TouchableOpacity style={styles.imagePicker} onPress={pickProfileImage} activeOpacity={0.8}>
+            {profileImage ? (
+              <Image source={{ uri: getProfileImageUri(profileImage) }} style={styles.profileImage} />
+            ) : (
+              <Text style={styles.imagePickerText}>Upload Photo</Text>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.imageHint}>Tap to choose from gallery</Text>
+        </View>
+
         <Text style={styles.label}>Username</Text>
         <TextInput
           style={styles.input}
@@ -106,6 +155,30 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8F8F8" },
   content: { padding: 16 },
   card: { backgroundColor: "#FFFFFF", borderRadius: 16, padding: 18 },
+  imageSection: { alignItems: "center", marginBottom: 8 },
+  imagePicker: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: "#FFF0F6",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imagePickerText: {
+    color: "#FF6B9D",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  imageHint: {
+    fontSize: 12,
+    color: "#888888",
+  },
   label: { fontSize: 14, fontWeight: "600", color: "#444444", marginBottom: 8, marginTop: 12 },
   input: {
     borderWidth: 1,

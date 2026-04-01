@@ -5,6 +5,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import { useDispatch, useSelector } from 'react-redux';
 import { createHostelBooking, resetHostelSelection } from '../../redux/slice/hostelSlice';
 import { getAppConfig } from '../../services/api';
+import { paymentService } from '../../services/paymentService';
 
 const HostelCheckout = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -86,7 +87,8 @@ const HostelCheckout = ({ navigation }) => {
   const days = calculateDays();
   const roomPrice = parseFloat(selectedRoom?.price_per_day || 0) * days;
   const serviceFee = selectedServiceType?.additionalFee || 0;
-  const treatmentsTotal = additionalTreatments.reduce((sum, t) => sum + t.price, 0);
+  const getTreatmentPrice = (treatment) => Number(treatment?.price || treatment?.base_price || 0);
+  const treatmentsTotal = additionalTreatments.reduce((sum, treatment) => sum + getTreatmentPrice(treatment), 0);
   const tax = Math.round((roomPrice + serviceFee + treatmentsTotal) * 0.05);
   const total = roomPrice + serviceFee + treatmentsTotal + tax;
 
@@ -153,6 +155,13 @@ const HostelCheckout = ({ navigation }) => {
     bookingData.append('check_in_date', checkInDate);
     bookingData.append('check_out_date', checkOutDate);
     bookingData.append('service_type', selectedServiceType.id === 'self' ? 'store_visit' : selectedServiceType.id);
+    bookingData.append('name', name);
+    bookingData.append('full_name', name);
+    bookingData.append('phone', phone);
+    bookingData.append('email', email);
+    bookingData.append('address', address);
+    bookingData.append('address_line1', address);
+    bookingData.append('payment_method', selectedPayment);
     bookingData.append('allergies', petDetails.allergies || '');
     bookingData.append('health_conditions', petDetails.allergies || '');
     bookingData.append('diet_type', (petDetails.diet || 'Carnivore').toLowerCase().replace(/\s+/g, '_'));
@@ -160,13 +169,34 @@ const HostelCheckout = ({ navigation }) => {
     bookingData.append('vaccination_status', petDetails.vaccinated ? 'up_to_date' : 'not_updated');
     bookingData.append('communicable_disease', petDetails.communicableDisease ? 'true' : 'false');
     bookingData.append('total_price', String(total));
+    additionalTreatments.forEach((treatment) => {
+      if (treatment?.backendId) {
+        bookingData.append('additional_treatments', String(treatment.backendId));
+      }
+      if (treatment?.name) {
+        bookingData.append('additional_treatment_labels', String(treatment.name));
+      }
+    });
     appendImageField(bookingData, 'owner_photo', ownerPhoto);
     appendImageField(bookingData, 'police_report', policeReport);
 
     dispatch(createHostelBooking(bookingData))
       .unwrap()
-      .then((result) => {
+      .then(async (result) => {
         dispatch(resetHostelSelection());
+
+        if (selectedPayment === 'esewa' && result.order) {
+          const paymentResult = await paymentService.payWithEsewa(result.order);
+          if (!paymentResult.success) {
+            Alert.alert(
+              'Payment not completed',
+              'Your hostel booking was created, but eSewa payment was not completed. You can check it from My Orders.',
+              [{ text: 'View Orders', onPress: navigateToOrders }]
+            );
+            return;
+          }
+        }
+
         const orderNumber = formatHostelOrderId(
           result?.order_number || result?.order?.order_number || result?.order || result?.id
         );
@@ -333,7 +363,7 @@ const HostelCheckout = ({ navigation }) => {
           {additionalTreatments.map((treatment) => (
             <View key={treatment.id} style={styles.priceRow}>
               <Text style={styles.priceLabel}>{treatment.name}</Text>
-              <Text style={styles.priceValue}>Rs. {treatment.price}</Text>
+              <Text style={styles.priceValue}>Rs. {getTreatmentPrice(treatment)}</Text>
             </View>
           ))}
           <View style={styles.priceRow}>

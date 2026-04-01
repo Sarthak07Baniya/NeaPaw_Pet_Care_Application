@@ -1,11 +1,13 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
     Dimensions,
     Image,
+    Keyboard,
     ScrollView,
     StyleSheet,
     Text,
@@ -18,18 +20,26 @@ import Button from "../../../components/ui/Button/Button";
 import Input from "../../../components/ui/Input/Input";
 import {
     addPetAsync,
+    setPetData,
     setOwnerName,
 } from "../../../redux/slice/myPetSlice";
+
+const OWNER_NAME_KEY = "neapaw_owner_name";
 
 const Owner = ({ navigation }) => {
   const [owner, setOwner] = useState("");
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const currentPetInfo = useSelector((state) => state.myPet.currentPetInfo);
-  const myPets = useSelector((state) => state.myPet.myPets);
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
+  const hasSubmittedSuccessfullyRef = useRef(false);
 
-  const pressHandler = () => {
+  const pressHandler = async () => {
+    if (isLoading || isSubmittingRef.current) {
+      return;
+    }
+    Keyboard.dismiss();
     if (owner === "") {
       return Alert.alert("oops...", "Please enter your name");
     }
@@ -44,6 +54,7 @@ const Owner = ({ navigation }) => {
     }
     let ownerTrim = owner.trim();
 
+    await AsyncStorage.setItem(OWNER_NAME_KEY, ownerTrim);
     dispatch(setOwnerName(ownerTrim));
 
     const normalizedBirthday = currentPetInfo.birthDate
@@ -64,6 +75,7 @@ const Owner = ({ navigation }) => {
             ? "Female"
             : currentPetInfo.gender,
       name: currentPetInfo.name,
+      ownerName: ownerTrim,
       pet_type:
         currentPetInfo.spicie === "dog"
           ? "Dog"
@@ -73,29 +85,37 @@ const Owner = ({ navigation }) => {
       photo: currentPetInfo.photoURL || null,
       weight: currentPetInfo.weight ? parseFloat(currentPetInfo.weight) : null,
     };
-
-    if (myPets.length === 2) {
-      return navigation.navigate("bottomNavStack", {
-        screen: "My Pet",
-      });
-    }
+    isSubmittingRef.current = true;
     setIsLoading(true);
+    try {
+      const createdPet = await dispatch(addPetAsync(pet)).unwrap();
+      hasSubmittedSuccessfullyRef.current = true;
+      dispatch(setPetData(createdPet));
 
-    dispatch(addPetAsync(pet))
-      .unwrap()
-      .then((res) => {
-        // Success
-        navigation.navigate("bottomNavStack", {
-          screen: "My Pet",
-        });
-      })
-      .catch((err) => {
-        console.error("Add pet error:", err);
-        Alert.alert("Error", "Failed to add pet. Please try again.");
-      })
-      .finally(() => {
-        setIsLoading(false);
+      let rootNavigation = navigation;
+      while (rootNavigation?.getParent?.()) {
+        rootNavigation = rootNavigation.getParent();
+      }
+
+      rootNavigation?.reset?.({
+        index: 0,
+        routes: [
+          {
+            name: "bottomNavStack",
+          },
+        ],
       });
+
+      return;
+    } catch (err) {
+      console.error("Add pet error:", err);
+      Alert.alert("Error", "Failed to add pet. Please try again.");
+    } finally {
+      if (!hasSubmittedSuccessfullyRef.current) {
+        isSubmittingRef.current = false;
+        setIsLoading(false);
+      }
+    }
   };
 
   const ownerHandler = (owner) => {
@@ -112,7 +132,7 @@ const Owner = ({ navigation }) => {
     <ScrollView
       style={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
+      keyboardShouldPersistTaps="always"
     >
       <View style={styles.container}>
         <View

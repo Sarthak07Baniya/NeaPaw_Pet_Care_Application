@@ -38,6 +38,8 @@ const Walk = ({ navigation }) => {
   const [isStopwatchStart, setIsStopwatchStart] = useState(false);
   const [resetStopwatch, setResetStopwatch] = useState(false);
   const [locationPermission, setLocationPermission] = useState(true);
+  const [walkDuration, setWalkDuration] = useState("00:00:00");
+  const [hasPausedWalk, setHasPausedWalk] = useState(false);
 
   const [position, setPosition] = useState(null);
   const [initialPosition, setInitialPosition] = useState({
@@ -64,6 +66,9 @@ const Walk = ({ navigation }) => {
   };
 
   const calculatePreciseDistance = () => {
+    if (!position?.latitude || !position?.longitude) {
+      return liveMeters.distance;
+    }
     var pdis = getPreciseDistance(
       {
         latitude: initialPosition.latitude,
@@ -74,6 +79,7 @@ const Walk = ({ navigation }) => {
     setLiveMeters({
       distance: parseInt(pdis),
     });
+    return parseInt(pdis);
   };
 
   useEffect(() => {
@@ -134,12 +140,11 @@ const Walk = ({ navigation }) => {
   };
 
   const stopForegroundUpdate = () => {
-    setLiveMeters({
-      distance: 0,
-    });
-    calculatePreciseDistance();
+    const distance = calculatePreciseDistance();
     foregroundSubscription?.remove();
     setPosition(null);
+    setHasPausedWalk(true);
+    return distance;
   };
 
   useEffect(() => {
@@ -159,7 +164,9 @@ const Walk = ({ navigation }) => {
   }, [isFocused, currentPetId]);
 
   const walkSubmitHandler = () => {
-    if (liveMeters.distance === 0) {
+    const hasRecordedSession = hasPausedWalk || walkDuration !== "00:00:00";
+
+    if (!hasRecordedSession && liveMeters.distance === 0) {
       // if (meterInput === 0 && !locationPermission) {
       //   return Alert.alert("oops...", "Please enter a meter value");
       // }
@@ -195,7 +202,7 @@ const Walk = ({ navigation }) => {
           ? note
           : `${liveMeters.distance} meters walked`,
       startTime: time ? time : timeFormattedForWalk,
-      endTime: "",
+      endTime: walkDuration,
       calorie: "",
       // meter: !locationPermission ? meterInput : liveMeters.distance,
       meter: liveMeters.distance,
@@ -217,6 +224,8 @@ const Walk = ({ navigation }) => {
 
     setIsStopwatchStart(false);
     setResetStopwatch(true);
+    setHasPausedWalk(false);
+    setWalkDuration("00:00:00");
     setLiveMeters({
       distance: 0,
     });
@@ -298,7 +307,7 @@ const Walk = ({ navigation }) => {
                 reset={resetStopwatch}
                 options={options}
                 getTime={(time) => {
-                  // console.log(time);
+                  setWalkDuration(time);
                 }}
               />
               <View style={styles.buttonContainer}>
@@ -315,6 +324,7 @@ const Walk = ({ navigation }) => {
                     // if (locationPermission) {
                     if (isStopwatchStart === false) {
                       startForegroundUpdate();
+                      setHasPausedWalk(false);
                     } else if (isStopwatchStart === true) {
                       stopForegroundUpdate();
                     }
@@ -324,11 +334,15 @@ const Walk = ({ navigation }) => {
                   }}
                 >
                   <Text style={styles.startButtonText}>
-                    {!isStopwatchStart ? "START" : "STOP"}
+                    {!isStopwatchStart
+                      ? hasPausedWalk || walkDuration !== "00:00:00"
+                        ? "RESUME"
+                        : "START"
+                      : "STOP"}
                   </Text>
                 </TouchableOpacity>
 
-                {liveMeters.distance > 0 && !isStopwatchStart && (
+                {(hasPausedWalk || walkDuration !== "00:00:00") && !isStopwatchStart && (
                   <TouchableOpacity
                     style={styles.resetButton}
                     activeOpacity={0.8}
@@ -336,6 +350,8 @@ const Walk = ({ navigation }) => {
                       // stopForegroundUpdate();
                       setIsStopwatchStart(false);
                       setResetStopwatch(true);
+                      setHasPausedWalk(false);
+                      setWalkDuration("00:00:00");
                       setLiveMeters({
                         distance: 0,
                       });
@@ -347,7 +363,7 @@ const Walk = ({ navigation }) => {
               </View>
             </View>
             <View style={styles.submitButtonContainer}>
-              {!isStopwatchStart && liveMeters.distance > 0 && (
+              {!isStopwatchStart && (hasPausedWalk || walkDuration !== "00:00:00") && (
                 <Button
                   onPress={walkSubmitHandler}
                   text="Submit Walk Distance"

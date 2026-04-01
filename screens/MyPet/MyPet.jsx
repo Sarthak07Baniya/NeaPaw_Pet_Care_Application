@@ -44,6 +44,7 @@ const MyPet = ({ navigation }) => {
       <UpcomingEvents navigation={navigation} />
       <ActivityRing />
       <CustomBarChart title="Weight History" />
+      <CustomBarChart title="Vet Appoitments" />
       <CustomLineChart />
       <CustomStackedBarChart />
     </ScrollView>

@@ -4,6 +4,7 @@ import api from "./api";
 const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 const CURRENT_USER_KEY = "neapaw_current_user";
+const OWNER_NAME_KEY = "neapaw_owner_name";
 
 export const authService = {
   // Register a new user
@@ -68,6 +69,7 @@ export const authService = {
       await AsyncStorage.removeItem(TOKEN_KEY);
       await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
       await AsyncStorage.removeItem(CURRENT_USER_KEY);
+      await AsyncStorage.removeItem(OWNER_NAME_KEY);
       return { success: true };
     }
   },
@@ -92,6 +94,22 @@ export const authService = {
     } catch (error) {
       console.error("Refresh profile error:", error);
       return null;
+    }
+  },
+
+  updateProfile: async (profileData) => {
+    try {
+      const isMultipart = typeof FormData !== "undefined" && profileData instanceof FormData;
+      const response = await api.patch('auth/profile/', profileData, isMultipart ? {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      } : undefined);
+      await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw error;
     }
   },
 

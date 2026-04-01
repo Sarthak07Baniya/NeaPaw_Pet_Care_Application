@@ -26,10 +26,12 @@ const VetAppoitments = () => {
   }, [isFocused, currentPetId]);
 
   const loadVetVisits = () => {
-    petService.getVetVisits()
+    petService.getVetVisits(currentPetId)
       .then((vet) => {
-        // Filter by current pet if backend doesn't already (backend does, but safe to keep logic simple)
-        const sortedVet = vet.sort((a, b) => {
+        const validVet = vet.filter((item) =>
+          moment(item.date, [moment.ISO_8601, "YYYY-MM-DD", "YYYY/MM/DD"], true).isValid()
+        );
+        const sortedVet = validVet.sort((a, b) => {
           return new Date(a.date) - new Date(b.date);
         });
         const data = sortedVet.map((item) => {

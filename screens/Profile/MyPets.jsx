@@ -1,10 +1,13 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPets } from "../../redux/slice/myPetSlice";
 import { resolveMediaUrl } from "../../services/api";
+
+const OWNER_NAME_KEY = "neapaw_owner_name";
 
 const getPetType = (pet) => {
   const value = pet?.spicie || pet?.species || pet?.pet_type || "";
@@ -40,9 +43,18 @@ const MyPets = () => {
   const dispatch = useDispatch();
   const myPets = useSelector((state) => state.myPet.myPets) || [];
   const savedOwnerName = useSelector((state) => state.myPet.currentPetInfo?.ownerName);
+  const [storedOwnerName, setStoredOwnerName] = useState("");
 
   useFocusEffect(
     useCallback(() => {
+      AsyncStorage.getItem(OWNER_NAME_KEY)
+        .then((value) => {
+          if (value) {
+            setStoredOwnerName(value);
+          }
+        })
+        .catch(() => {});
+
       if (!myPets.length) {
         dispatch(fetchPets());
       }
@@ -85,7 +97,9 @@ const MyPets = () => {
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Owner Name</Text>
-            <Text style={styles.detailValue}>{getOwnerName(item, savedOwnerName)}</Text>
+            <Text style={styles.detailValue}>
+              {getOwnerName(item, savedOwnerName || storedOwnerName)}
+            </Text>
           </View>
         </View>
       </View>

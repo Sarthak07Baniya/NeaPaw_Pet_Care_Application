@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
-const Button = ({ onPress, text, ...props }) => {
+const Button = ({ onPress, text, disabled = false, ...props }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={onPress}
-      style={[styles.buttonContainer, {}]}
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
+      style={[styles.buttonContainer, disabled && styles.buttonDisabled]}
       {...props}
     >
       <Text style={styles.text}>{text}</Text>
@@ -27,6 +28,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 12,
     padding: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   text: {
     color: "#fff",

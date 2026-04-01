@@ -1,6 +1,22 @@
 import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
 import { orderService } from '../../services/orderService';
 
+const getChatStateKey = ({ orderId, orderType }) =>
+  orderType === 'adoption' ? `adoption-${String(orderId).replace('adoption-', '')}` : String(orderId);
+
+const normalizeChatPayload = (payload) =>
+  typeof payload === 'object' && payload !== null
+    ? {
+        orderId: payload.orderId ?? payload.id,
+        orderType: payload.orderType ?? payload.type ?? 'shopping',
+        message: payload.message,
+      }
+    : {
+        orderId: payload,
+        orderType: 'shopping',
+        message: undefined,
+      };
+
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
   async (_, { rejectWithValue }) => {
@@ -34,6 +50,38 @@ export const trackOrderAsync = createAsyncThunk(
   }
 );
 
+export const fetchChatMessages = createAsyncThunk(
+  'orders/fetchChatMessages',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { orderId, orderType } = normalizeChatPayload(payload);
+      const stateKey = getChatStateKey({ orderId, orderType });
+      return {
+        orderId: stateKey,
+        messages: await orderService.getChatMessages({ orderId, orderType }),
+      };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const sendChatMessageAsync = createAsyncThunk(
+  'orders/sendChatMessage',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { orderId, orderType, message } = normalizeChatPayload(payload);
+      const stateKey = getChatStateKey({ orderId, orderType });
+      return {
+        orderId: stateKey,
+        message: await orderService.sendChatMessage({ orderId, orderType }, message),
+      };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const initialState = {
   orders: [],
   selectedFilter: 'all',
@@ -49,24 +97,6 @@ const ordersSlice = createSlice({
   reducers: {
     setOrderFilter: (state, action) => {
       state.selectedFilter = action.payload;
-    },
-    addChatMessage: (state, action) => {
-      const { orderId, message } = action.payload;
-
-      if (!orderId || !message) return;
-
-      const currentMessages = state.chatMessagesByOrder[orderId] || [];
-      currentMessages.push({
-        id: Date.now(),
-        sender: 'user',
-        message,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      });
-
-      state.chatMessagesByOrder[orderId] = currentMessages;
     },
   },
   extraReducers: (builder) => {
@@ -95,16 +125,26 @@ const ordersSlice = createSlice({
       })
       .addCase(trackOrderAsync.fulfilled, (state, action) => {
         state.trackingInfo = action.payload;
+      })
+      .addCase(fetchChatMessages.fulfilled, (state, action) => {
+        const { orderId, messages } = action.payload;
+        state.chatMessagesByOrder[orderId] = Array.isArray(messages) ? messages : [];
+      })
+      .addCase(sendChatMessageAsync.fulfilled, (state, action) => {
+        const { orderId, message } = action.payload;
+        const currentMessages = state.chatMessagesByOrder[orderId] || [];
+        currentMessages.push(message);
+        state.chatMessagesByOrder[orderId] = currentMessages;
       });
   },
 });
 
-export const { setOrderFilter, addChatMessage } = ordersSlice.actions;
+export const { setOrderFilter } = ordersSlice.actions;
 
 export const selectAllOrders = (state) => state.orders.orders;
 export const selectOrderFilter = (state) => state.orders.selectedFilter;
-export const selectChatMessages = (orderId) => (state) =>
-  state.orders.chatMessagesByOrder[orderId] || [];
+export const selectChatMessages = (orderId, orderType = 'shopping') => (state) =>
+  state.orders.chatMessagesByOrder[getChatStateKey({ orderId, orderType })] || [];
 export const selectFilteredOrders = createSelector(
   [selectAllOrders, selectOrderFilter],
   (orders, selectedFilter) => {

@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
 import { LineChart } from "react-native-chart-kit";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
-import { getAllVaccinebyPetId } from "../../../../database/tables/vaccine";
 import { getAllMedicalbyPetId } from "../../../../database/tables/medical";
+import { petService } from "../../../../services/petService";
 
 const CustomLineChart = ({ title }) => {
   const screenWidth = Dimensions.get("window").width * 0.8;
@@ -28,7 +28,7 @@ const CustomLineChart = ({ title }) => {
       const loadChartData =
         title === "Medical History Stats"
           ? getAllMedicalbyPetId(currentPetId)
-          : getAllVaccinebyPetId(currentPetId);
+          : petService.getVaccines(currentPetId);
 
       loadChartData
         .then((res) => {

@@ -49,5 +49,15 @@ export const treatmentService = {
       console.error("Cancel treatment booking error:", error);
       throw error;
     }
+  },
+
+  addReview: async (bookingId, reviewData) => {
+    try {
+      const response = await api.post(`treatment/bookings/${bookingId}/review/`, reviewData);
+      return response.data;
+    } catch (error) {
+      console.error("Create treatment review error:", error);
+      throw error;
+    }
   }
 };

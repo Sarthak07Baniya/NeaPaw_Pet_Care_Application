@@ -79,7 +79,7 @@ const BookingConfirmation = ({ route, navigation }) => {
         
         <View style={styles.detailsCard}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Order ID</Text>
+            <Text style={styles.detailLabel}>Booking ID</Text>
             <Text style={styles.detailValue}>{displayOrderId}</Text>
           </View>
           <View style={styles.detailRow}>

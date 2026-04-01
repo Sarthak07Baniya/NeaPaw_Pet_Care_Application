@@ -45,6 +45,7 @@ const ClockPicker = ({
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
   const [selectedSecond, setSelectedSecond] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState("AM");
 
   const handleHourSelect = (selectedHour) => {
     setTime(formatHourOnlyValue(selectedHour));
@@ -53,10 +54,12 @@ const ClockPicker = ({
   };
 
   const handleDetailedSave = () => {
-    const normalizedHour = String(selectedHour || "00").padStart(2, "0");
+    const rawHour = Number(selectedHour || "0");
+    const boundedHour = Math.min(Math.max(rawHour, 1), 12) || 12;
+    const normalizedHour = String(boundedHour).padStart(2, "0");
     const normalizedMinute = String(selectedMinute || "00").padStart(2, "0");
     const normalizedSecond = String(selectedSecond || "00").padStart(2, "0");
-    const selectedTime = `${normalizedHour}:${normalizedMinute}:${normalizedSecond}`;
+    const selectedTime = `${normalizedHour}:${normalizedMinute}:${normalizedSecond} ${selectedPeriod}`;
     setTime(selectedTime);
     setModalVisible(false);
     onChange(selectedTime);
@@ -95,9 +98,9 @@ const ClockPicker = ({
                       style={styles.detailedInput}
                       keyboardType="number-pad"
                       value={selectedHour}
-                      onChangeText={(value) => setSelectedHour(sanitizeTimePart(value, 23))}
+                      onChangeText={(value) => setSelectedHour(sanitizeTimePart(value, 12))}
                       maxLength={2}
-                      placeholder="00"
+                      placeholder="12"
                       placeholderTextColor="#AAAAAA"
                       selectTextOnFocus
                     />
@@ -128,6 +131,40 @@ const ClockPicker = ({
                       selectTextOnFocus
                     />
                   </View>
+                </View>
+                <View style={styles.periodRow}>
+                  <Pressable
+                    style={[
+                      styles.periodButton,
+                      selectedPeriod === "AM" && styles.periodButtonActive,
+                    ]}
+                    onPress={() => setSelectedPeriod("AM")}
+                  >
+                    <Text
+                      style={[
+                        styles.periodButtonText,
+                        selectedPeriod === "AM" && styles.periodButtonTextActive,
+                      ]}
+                    >
+                      AM
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.periodButton,
+                      selectedPeriod === "PM" && styles.periodButtonActive,
+                    ]}
+                    onPress={() => setSelectedPeriod("PM")}
+                  >
+                    <Text
+                      style={[
+                        styles.periodButtonText,
+                        selectedPeriod === "PM" && styles.periodButtonTextActive,
+                      ]}
+                    >
+                      PM
+                    </Text>
+                  </Pressable>
                 </View>
                 <Pressable
                   style={[styles.button, styles.buttonClose]}
@@ -277,6 +314,34 @@ const styles = StyleSheet.create({
   },
   detailedInputBlock: {
     width: "31%",
+  },
+  periodRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+    gap: 10,
+  },
+  periodButton: {
+    minWidth: 72,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#F8FAFD",
+    borderWidth: 1,
+    borderColor: "#E7ECF3",
+  },
+  periodButtonActive: {
+    backgroundColor: "#707BFB",
+    borderColor: "#707BFB",
+  },
+  periodButtonText: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#555555",
+  },
+  periodButtonTextActive: {
+    color: "#FFFFFF",
   },
   detailedLabel: {
     fontSize: 13,

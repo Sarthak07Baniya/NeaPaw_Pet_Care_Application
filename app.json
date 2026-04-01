@@ -2,6 +2,7 @@
   "expo": {
     "name": "neapaw",
     "slug": "neapaw",
+    "scheme": "neapaw",
     "version": "1.0.0",
     "backgroundColor": "#ffffff",
     "orientation": "portrait",
@@ -26,7 +27,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#707BFB"
       },
-      "package": "com.neapaw.neapaw"
+      "package": "com.neapaw.neapaw",
+      "googleServicesFile": "./android/app/google-services.json"
     },
     "androidNavigationBar": {
       "barStyle": "dark-content",

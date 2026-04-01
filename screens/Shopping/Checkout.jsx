@@ -137,6 +137,7 @@ const Checkout = ({ navigation }) => {
         shipping_address: {
           full_name: name,
           phone,
+          email,
           address_line1: address,
           city: 'City',
           state: 'State',
@@ -163,6 +164,7 @@ const Checkout = ({ navigation }) => {
             navigation.navigate('OrderConfirmation', {
               orderId: order.order_number,
               total: Math.max(0, latestCartTotal + latestDeliveryFee + latestTax - latestDiscount),
+              estimatedDelivery: order.estimated_delivery,
             });
             return;
           }
@@ -178,6 +180,7 @@ const Checkout = ({ navigation }) => {
         navigation.navigate('OrderConfirmation', {
           orderId: order.order_number,
           total: Math.max(0, latestCartTotal + latestDeliveryFee + latestTax - latestDiscount),
+          estimatedDelivery: order.estimated_delivery,
         });
       } else {
         Alert.alert("Error", resultAction.payload || "Failed to place order");

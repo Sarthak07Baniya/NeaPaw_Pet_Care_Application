@@ -18,7 +18,8 @@ const Home = ({ navigation }) => {
   const currentPetId = useSelector((state) => state.myPet.currentPetId);
   const myPets = useSelector((state) => state.myPet.myPets) || [];
   const currentPet = myPets.find((pet) => pet.id === currentPetId) || myPets[0] || null;
-  const userName = useSelector((state) => state.myPet.currentPetInfo?.ownerName) || 'Pet Parent';
+  const draftOwnerName = useSelector((state) => state.myPet.currentPetInfo?.ownerName);
+  const userName = currentPet?.ownerName || draftOwnerName || 'Pet Parent';
   const latestOffers = useSelector(selectOffers) || [];
   const bestSellingItems = (useSelector(selectProducts) || []).slice(0, 6);
   const [refreshing, setRefreshing] = useState(false);

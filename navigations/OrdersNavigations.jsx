@@ -28,7 +28,14 @@ const OrdersNavigation = () => {
       <Stack.Screen
         name="OrderDetails"
         component={OrderDetails}
-        options={{ title: 'Order Details' }}
+        options={({ route }) => ({
+          title:
+            (route?.params?.order?.order_type || route?.params?.order?.type) === 'adoption'
+              ? 'Adoption Details'
+              : ['treatment', 'hostel'].includes(route?.params?.order?.order_type || route?.params?.order?.type)
+                ? 'Booking Details'
+                : 'Order Details',
+        })}
       />
       <Stack.Screen
         name="OrderChat"

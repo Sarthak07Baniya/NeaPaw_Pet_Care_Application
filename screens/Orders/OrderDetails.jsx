@@ -10,6 +10,9 @@ const OrderDetails = ({ route, navigation }) => {
   const order = route?.params?.order || {};
   const orderType = order.order_type || order.type;
   const isTreatmentBooking = orderType === 'treatment';
+  const isHostelBooking = orderType === 'hostel';
+  const isAdoptionApplication = orderType === 'adoption';
+  const isBookingFlow = isTreatmentBooking || isHostelBooking;
   const displayOrderId =
     orderType === 'hostel'
       ? String(order.order_number || order.id || '').replace(/^ORD-/i, 'HOSTEL-')
@@ -275,33 +278,43 @@ const OrderDetails = ({ route, navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {isTreatmentBooking ? 'Booking Information' : 'Order Information'}
+            {isAdoptionApplication ? 'Adoption Information' : isBookingFlow ? 'Booking Information' : 'Order Information'}
           </Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{isTreatmentBooking ? 'Booking ID' : 'Order ID'}</Text>
+            <Text style={styles.infoLabel}>
+              {isAdoptionApplication ? 'Adoption ID' : isBookingFlow ? 'Booking ID' : 'Order ID'}
+            </Text>
             <Text style={styles.infoValue}>{displayOrderId}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{isTreatmentBooking ? 'Booking Date' : 'Order Date'}</Text>
+            <Text style={styles.infoLabel}>
+              {isAdoptionApplication
+                ? 'Adoption Application Date'
+                : isBookingFlow
+                  ? 'Booking Date'
+                  : 'Order Date'}
+            </Text>
             <Text style={styles.infoValue}>
               {order.created_at ? new Date(order.created_at).toLocaleString() : 'Date unavailable'}
             </Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Total Amount</Text>
-            <Text style={styles.infoValueHighlight}>Rs. {order.total || 0}</Text>
-          </View>
+          {!isAdoptionApplication && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Total Amount</Text>
+              <Text style={styles.infoValueHighlight}>Rs. {order.total || 0}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {isTreatmentBooking ? 'Booking Status' : 'Order Status'}
+            {isBookingFlow ? 'Booking Status' : 'Order Status'}
           </Text>
           <View style={styles.timeline}>{renderStatusTimeline()}</View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Details</Text>
+          <Text style={styles.sectionTitle}>{isHostelBooking ? 'Booking Details' : 'Details'}</Text>
           {orderType === 'shopping' && (
             <>
               {canReviewPurchasedItems && (
@@ -402,12 +415,46 @@ const OrderDetails = ({ route, navigation }) => {
           {orderType === 'hostel' && (
             <>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Order Type</Text>
+                <Text style={styles.detailLabel}>Booking Type</Text>
                 <Text style={styles.detailValue}>Pet Hostel</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Status</Text>
-                <Text style={styles.detailValue}>{formatStatusLabel(order.status || 'pending')}</Text>
+                <Text style={styles.detailLabel}>Pet Name</Text>
+                <Text style={styles.detailValue}>{order.hostel_pet_name || '-'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Room</Text>
+                <Text style={styles.detailValue}>{order.hostel_room_name || '-'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Check-in</Text>
+                <Text style={styles.detailValue}>
+                  {order.hostel_check_in_date ? new Date(order.hostel_check_in_date).toLocaleDateString() : '-'}
+                </Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Check-out</Text>
+                <Text style={styles.detailValue}>
+                  {order.hostel_check_out_date ? new Date(order.hostel_check_out_date).toLocaleDateString() : '-'}
+                </Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Duration</Text>
+                <Text style={styles.detailValue}>
+                  {order.hostel_duration_days ? `${order.hostel_duration_days} day${order.hostel_duration_days === 1 ? '' : 's'}` : '-'}
+                </Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Service Type</Text>
+                <Text style={styles.detailValue}>{order.hostel_service_type || '-'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Additional Treatments</Text>
+                <Text style={styles.detailValue}>
+                  {Array.isArray(order.hostel_additional_treatments) && order.hostel_additional_treatments.length > 0
+                    ? order.hostel_additional_treatments.join(', ')
+                    : '-'}
+                </Text>
               </View>
               {canReviewHostel ? (
                 <View style={styles.treatmentReviewSection}>
@@ -675,6 +722,7 @@ const styles = StyleSheet.create({
   detailItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
@@ -682,12 +730,16 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 15,
     color: '#666666',
+    flex: 1,
+    marginRight: 12,
   },
   detailValue: {
     fontSize: 15,
     fontWeight: '600',
     color: '#2C2C2C',
     textTransform: 'capitalize',
+    flex: 1,
+    textAlign: 'right',
   },
   treatmentReviewSection: {
     marginTop: 16,

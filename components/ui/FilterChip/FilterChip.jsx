@@ -17,12 +17,14 @@ export default FilterChip;
 const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    height: 40,
     borderRadius: 20,
     backgroundColor: '#F5F5F5',
     marginRight: 10,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   activeChip: {
     backgroundColor: '#FF6B9D',
@@ -32,6 +34,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#666666',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   activeLabel: {
     color: '#FFFFFF',

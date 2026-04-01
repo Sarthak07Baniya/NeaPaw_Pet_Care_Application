@@ -6,8 +6,13 @@ import { fetchChatMessages, selectChatMessages, sendChatMessageAsync } from '../
 
 const OrderChat = ({ route }) => {
   const { order } = route.params;
+  const orderType = order?.order_type || order?.type || 'shopping';
+  const orderIdLabel =
+    orderType === 'hostel'
+      ? String(order?.order_number || order?.id || '').replace(/^ORD-/i, 'HOSTEL-')
+      : order?.order_number || order?.id;
   const dispatch = useDispatch();
-  const messages = useSelector(selectChatMessages(order.id));
+  const messages = useSelector(selectChatMessages(order.id, orderType));
   const [inputText, setInputText] = useState('');
 
   const sortMessagesByTime = (items) =>
@@ -33,18 +38,19 @@ const OrderChat = ({ route }) => {
       return;
     }
 
-    dispatch(fetchChatMessages(order.id));
+    dispatch(fetchChatMessages({ orderId: order.id, orderType }));
     const intervalId = setInterval(() => {
-      dispatch(fetchChatMessages(order.id));
+      dispatch(fetchChatMessages({ orderId: order.id, orderType }));
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [dispatch, order?.id]);
+  }, [dispatch, order?.id, orderType]);
 
   const handleSend = async () => {
     if (inputText.trim()) {
       await dispatch(sendChatMessageAsync({
         orderId: order.id,
+        orderType,
         message: inputText.trim(),
       }));
       setInputText('');
@@ -58,7 +64,20 @@ const OrderChat = ({ route }) => {
       : '';
     return (
       <View style={[styles.messageContainer, isUser && styles.messageContainerUser]}>
-        <View style={[styles.messageBubble, isUser && styles.messageBubbleUser]}>
+        <View
+          style={[
+            styles.messageBubble,
+            isUser && styles.messageBubbleUser,
+          ]}
+        >
+          <View style={[styles.messageMetaRow, isUser && styles.messageMetaRowUser]}>
+            <Text style={[styles.messageSenderBadge, isUser && styles.messageSenderBadgeUser]}>
+              {isUser ? 'Your Message' : 'Admin Reply'}
+            </Text>
+            {!isUser && item.sender_name ? (
+              <Text style={styles.messageSenderName}>{item.sender_name}</Text>
+            ) : null}
+          </View>
           <Text style={[styles.messageText, isUser && styles.messageTextUser]}>
             {item.message}
           </Text>
@@ -87,7 +106,9 @@ const OrderChat = ({ route }) => {
         <Feather name="headphones" size={20} color="#FF6B9D" />
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Support Chat</Text>
-          <Text style={styles.headerSubtitle}>Order #{order.id}</Text>
+          <Text style={styles.headerSubtitle}>
+            {orderType === 'adoption' ? 'Application' : 'Order'} {orderIdLabel}
+          </Text>
         </View>
       </View>
 
@@ -191,6 +212,37 @@ const styles = StyleSheet.create({
   },
   messageBubbleUser: {
     backgroundColor: '#FF6B9D',
+  },
+  messageMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 8,
+  },
+  messageMetaRowUser: {
+    justifyContent: 'flex-end',
+  },
+  messageSenderBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EEF2FF',
+    color: '#4F46E5',
+    fontSize: 11,
+    fontWeight: '700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  messageSenderBadgeUser: {
+    backgroundColor: '#FFFFFF33',
+    color: '#FFFFFF',
+  },
+  messageSenderName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#888888',
+    flexShrink: 1,
   },
   messageText: {
     fontSize: 15,

@@ -3,10 +3,8 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import catImage from "../../../assets/emptyPetImages/cat.png";
 import dogImage from "../../../assets/emptyPetImages/dog.png";
-import { setSelectedDate } from "../../../redux/slice/myPetSlice";
+import { setId, setSelectedDate } from "../../../redux/slice/myPetSlice";
 import { resolveMediaUrl } from "../../../services/api";
-
-import { setId } from "../../../redux/slice/myPetSlice";
 
 export const CustomMainHeaderLeft = ({ isNameVisible }) => {
   const dispatch = useDispatch();
@@ -21,7 +19,6 @@ export const CustomMainHeaderLeft = ({ isNameVisible }) => {
 
   const petChangeHandler = () => {
     if (myPets.length >= 2) {
-      // swap the current pet
       dispatch(
         setId({
           id: currentPetId === myPets[0].id ? myPets[1].id : myPets[0].id,
@@ -39,10 +36,7 @@ export const CustomMainHeaderLeft = ({ isNameVisible }) => {
     >
       <View style={styles.imageContainer}>
         {petPhoto ? (
-          <Image
-            source={{ uri: petPhoto }}
-            style={styles.image}
-          />
+          <Image source={{ uri: petPhoto }} style={styles.image} />
         ) : (
           <Image
             style={styles.image}
@@ -69,14 +63,6 @@ export const CustomMainHeaderRight = ({ navigation }) => {
 
   const pressHandler = () => {
     dispatch(setSelectedDate(currentDate));
-    //console.log(currentDate);
-
-    // navigation.navigate("ActivitiesMain", {
-    //   screen: "NewActivity",
-    // });
-
-    // "Activities", "NewActivity";
-
     navigation.navigate("Activities", {
       screen: "ActivitiesMain",
       params: {
@@ -130,10 +116,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    left:3,
+    left: 3,
   },
   imageContainer: {
-    // left: 20,
     width: 70,
     height: "100%",
     justifyContent: "center",
@@ -147,7 +132,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   leftTextContainer: {
-    // left: Platform.OS === "android" ? 5 : 25,
     height: "59%",
     justifyContent: "center",
     alignItems: "flex-start",

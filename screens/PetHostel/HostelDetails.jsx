@@ -1,20 +1,77 @@
 import { Feather } from "@expo/vector-icons";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPetDetails, toggleAdditionalTreatment } from '../../redux/slice/hostelSlice';
-import { additionalHostelTreatments as additionalTreatments, dietOptions, petNatureOptions } from '../../utils/appData';
+import { treatmentService } from '../../services/treatmentService';
+import { additionalHostelTreatments, dietOptions, petNatureOptions } from '../../utils/appData';
 
 const HostelDetails = ({ navigation }) => {
   const dispatch = useDispatch();
   const selectedTreatments = useSelector((state) => state.hostel.additionalTreatments);
   const petDetails = useSelector((state) => state.hostel.petDetails);
+  const [availableTreatments, setAvailableTreatments] = useState([]);
 
   const [allergies, setAllergies] = useState(petDetails.allergies || '');
   const [diet, setDiet] = useState(petDetails.diet || '');
   const [nature, setNature] = useState(petDetails.nature || '');
   const [vaccinated, setVaccinated] = useState(petDetails.vaccinated || false);
   const [communicableDisease, setCommunicableDisease] = useState(petDetails.communicableDisease || false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTreatments = async () => {
+      try {
+        const response = await treatmentService.getTreatmentTypes();
+        const data = response?.results || response || [];
+
+        if (!isMounted) {
+          return;
+        }
+
+        const backendByName = new Map(
+          data.map((treatment) => [
+            String(treatment.name || '').trim().toLowerCase(),
+            treatment,
+          ])
+        );
+
+        setAvailableTreatments(
+          additionalHostelTreatments.map((treatment) => {
+            const backendMatch = backendByName.get(
+              String(treatment.name || '').trim().toLowerCase()
+            );
+
+            return {
+              ...treatment,
+              id: backendMatch?.id ?? `legacy-${treatment.id}`,
+              backendId: backendMatch?.id ?? null,
+              price: Number(backendMatch?.base_price || treatment.price || 0),
+            };
+          })
+        );
+      } catch (error) {
+        console.error('Error loading hostel additional treatments', error);
+        if (isMounted) {
+          setAvailableTreatments(
+            additionalHostelTreatments.map((treatment) => ({
+              ...treatment,
+              id: `legacy-${treatment.id}`,
+              backendId: null,
+              price: Number(treatment.price || 0),
+            }))
+          );
+        }
+      }
+    };
+
+    loadTreatments();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleTreatmentToggle = (treatment) => {
     dispatch(toggleAdditionalTreatment(treatment));
@@ -42,7 +99,7 @@ const HostelDetails = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Additional Treatments (Optional)</Text>
           <Text style={styles.sectionDesc}>Select one or more additional services</Text>
-          {additionalTreatments.map((treatment) => (
+          {availableTreatments.map((treatment) => (
             <TouchableOpacity
               key={treatment.id}
               style={[
@@ -60,6 +117,9 @@ const HostelDetails = ({ navigation }) => {
               )}
             </TouchableOpacity>
           ))}
+          {availableTreatments.length === 0 && (
+            <Text style={styles.sectionDesc}>No additional treatments available right now.</Text>
+          )}
         </View>
 
         {/* Pet Health Information */}
