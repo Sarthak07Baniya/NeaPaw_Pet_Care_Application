@@ -1,5 +1,6 @@
 import { createStackNavigator } from "@react-navigation/stack";
 import AboutUs from "../screens/Profile/AboutUs";
+import ChangePassword from "../screens/Profile/ChangePassword";
 import EditProfile from "../screens/Profile/EditProfile";
 import FavouriteItems from "../screens/Profile/FavouriteItems";
 import MyPets from "../screens/Profile/MyPets";
@@ -30,6 +31,7 @@ const ProfileNavigation = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="EditProfile" component={EditProfile} options={{ title: "Edit Profile" }} />
+      <Stack.Screen name="ChangePassword" component={ChangePassword} options={{ title: "Change Password" }} />
       <Stack.Screen name="MyPets" component={MyPets} options={{ title: "My Pets" }} />
       <Stack.Screen name="FavouriteItems" component={FavouriteItems} options={{ title: "Favourite Items" }} />
       <Stack.Screen name="ReviewsHome" component={ReviewsHome} options={{ title: "Reviews" }} />

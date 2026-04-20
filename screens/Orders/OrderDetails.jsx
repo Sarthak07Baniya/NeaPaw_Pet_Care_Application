@@ -151,7 +151,7 @@ const OrderDetails = ({ route, navigation }) => {
       });
       setTreatmentComment('');
       setTreatmentRating(5);
-      Alert.alert('Review submitted', 'Your treatment review has been sent to the admin panel.');
+      Alert.alert('Review submitted', 'We have received your review.');
     } catch (error) {
       Alert.alert(
         'Unable to submit review',
@@ -186,7 +186,7 @@ const OrderDetails = ({ route, navigation }) => {
       });
       setHostelComment('');
       setHostelRating(5);
-      Alert.alert('Review submitted', 'Your pet hostel review has been sent to the admin panel.');
+      Alert.alert('Review submitted', 'We have received your review.');
     } catch (error) {
       Alert.alert(
         'Unable to submit review',
@@ -222,7 +222,7 @@ const OrderDetails = ({ route, navigation }) => {
       });
       setAdoptionComment('');
       setAdoptionRating(5);
-      Alert.alert('Review submitted', 'Your adoption review has been sent to the admin panel.');
+      Alert.alert('Review submitted', 'We have received your review.');
     } catch (error) {
       Alert.alert(
         'Unable to submit review',

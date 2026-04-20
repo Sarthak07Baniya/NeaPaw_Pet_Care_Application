@@ -113,6 +113,30 @@ export const authService = {
     }
   },
 
+  changePassword: async (oldPassword, newPassword, confirmPassword) => {
+    try {
+      const response = await api.post('auth/change-password/', {
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+      return {
+        success: true,
+        message: response.data.message,
+      };
+    } catch (error) {
+      console.error("Change password error:", error.response?.data || error.message);
+      return {
+        success: false,
+        message:
+          error.response?.data?.error ||
+          error.response?.data?.non_field_errors?.[0] ||
+          error.response?.data?.new_password?.[0] ||
+          "An error occurred. Please try again.",
+      };
+    }
+  },
+
   // Request Password Reset
   requestPasswordReset: async (email) => {
     try {
@@ -132,10 +156,11 @@ export const authService = {
   },
 
   // Confirm Password Reset
-  confirmPasswordReset: async (email, newPassword, confirmPassword) => {
+  confirmPasswordReset: async (email, otp, newPassword, confirmPassword) => {
     try {
       const response = await api.post('auth/password-reset-confirm/', {
         email,
+        otp,
         new_password: newPassword,
         confirm_password: confirmPassword
       });
@@ -147,7 +172,11 @@ export const authService = {
       console.error("Password reset confirm error:", error.response?.data || error.message);
       return { 
         success: false, 
-        message: error.response?.data?.error || error.response?.data?.new_password?.[0] || "An error occurred. Please try again." 
+        message:
+          error.response?.data?.error ||
+          error.response?.data?.otp?.[0] ||
+          error.response?.data?.new_password?.[0] ||
+          "An error occurred. Please try again." 
       };
     }
   }

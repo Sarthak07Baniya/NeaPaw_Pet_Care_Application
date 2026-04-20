@@ -19,18 +19,23 @@ const Toilet = ({ navigation }) => {
   const petName = useSelector((state) => state.myPet.currentPetInfo.name);
   const spicie = useSelector((state) => state.myPet.currentPetInfo.spicie);
   const [note, setNote] = useState("");
-  const [time, setTime] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
 
   const noteHandler = (note) => {
     setNote(note);
   };
 
-  const clockHandler = (time) => {
-    setTime(`${time}:00`);
+  const startTimeHandler = (time) => {
+    setStartTime(`${time}:00`);
+  };
+
+  const endTimeHandler = (time) => {
+    setEndTime(`${time}:00`);
   };
 
   const toiletSubmitHandler = () => {
-    if (note.length === 0 || time.length === 0) {
+    if (note.length === 0 || startTime.length === 0 || endTime.length === 0) {
       return Alert.alert("oops...", "Please fill all the fields");
     } else if (note.length > 100) {
       return Alert.alert(
@@ -38,16 +43,19 @@ const Toilet = ({ navigation }) => {
         "Please enter a note less than 100 characters"
       );
     }
+    if (endTime <= startTime) {
+      return Alert.alert("oops...", "Please select an end time after start time");
+    }
     const activityFormattedDate = selectedDate.split("T")[0];
-    const newActivityDate = `${activityFormattedDate}T${time}`;
+    const newActivityDate = `${activityFormattedDate}T${startTime}`;
     const datui = new Date(activityFormattedDate);
     const toiletActivity = {
       petId: +currentPetId,
       activityType: "toilet",
       date: newActivityDate,
       note: note,
-      startTime: time,
-      endTime: "",
+      startTime,
+      endTime,
       calorie: "",
       meter: "",
     };
@@ -58,7 +66,7 @@ const Toilet = ({ navigation }) => {
           `${petName} has a Toilet Activity`,
           `Pssttt ${petName} has a toilet activity now...`,
           datui,
-          time
+          startTime
         );
       })
       .catch((err) => {
@@ -86,9 +94,14 @@ const Toilet = ({ navigation }) => {
             onChange={noteHandler}
           />
           <ClockPicker
-            onChange={clockHandler}
-            placeHolder="Time"
-            buttonPlaceHolder="Set Time"
+            onChange={startTimeHandler}
+            placeHolder="Start Time"
+            buttonPlaceHolder="Set Start Time"
+          />
+          <ClockPicker
+            onChange={endTimeHandler}
+            placeHolder="End Time"
+            buttonPlaceHolder="Set End Time"
           />
         </View>
         <View style={styles.buttonContainer}>

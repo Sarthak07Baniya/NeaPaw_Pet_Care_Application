@@ -47,6 +47,7 @@ export const favouriteService = {
 
     const items = await readItems();
     const exists = items.some((item) => item.id === normalizedProduct.id);
+
     const nextItems = exists
       ? items.filter((item) => item.id !== normalizedProduct.id)
       : [normalizedProduct, ...items];

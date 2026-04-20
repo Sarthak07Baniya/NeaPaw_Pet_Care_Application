@@ -165,8 +165,11 @@ const Walk = ({ navigation }) => {
 
   const walkSubmitHandler = () => {
     const hasRecordedSession = hasPausedWalk || walkDuration !== "00:00:00";
+    const distanceToSave = Number.isFinite(Number(liveMeters.distance))
+      ? Number(liveMeters.distance)
+      : 0;
 
-    if (!hasRecordedSession && liveMeters.distance === 0) {
+    if (!hasRecordedSession && distanceToSave === 0) {
       // if (meterInput === 0 && !locationPermission) {
       //   return Alert.alert("oops...", "Please enter a meter value");
       // }
@@ -198,14 +201,14 @@ const Walk = ({ navigation }) => {
       activityType: "walk",
       date: newActivityDate,
       note:
-        liveMeters.distance === 0
+        distanceToSave === 0
           ? note
-          : `${liveMeters.distance} meters walked`,
+          : `${distanceToSave} meters walked`,
       startTime: time ? time : timeFormattedForWalk,
       endTime: walkDuration,
       calorie: "",
       // meter: !locationPermission ? meterInput : liveMeters.distance,
-      meter: liveMeters.distance,
+      meter: distanceToSave,
     };
 
     addAnActivity(currentPetId, walkActivity)
@@ -326,7 +329,12 @@ const Walk = ({ navigation }) => {
                       startForegroundUpdate();
                       setHasPausedWalk(false);
                     } else if (isStopwatchStart === true) {
-                      stopForegroundUpdate();
+                      const stoppedDistance = stopForegroundUpdate();
+                      setLiveMeters({
+                        distance: Number.isFinite(Number(stoppedDistance))
+                          ? Number(stoppedDistance)
+                          : 0,
+                      });
                     }
                     setIsStopwatchStart(!isStopwatchStart);
                     setResetStopwatch(false);

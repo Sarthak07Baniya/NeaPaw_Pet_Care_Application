@@ -1,4 +1,4 @@
-# NeawPaw - Pet Care Application
+# NeaPaw - Pet Care Application
 
 > A comprehensive React Native pet care application for shopping, treatment booking, hostel accommodation, and pet adoption.
 

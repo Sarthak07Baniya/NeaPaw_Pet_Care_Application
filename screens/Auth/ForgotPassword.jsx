@@ -100,7 +100,7 @@ const ForgotPassword = ({ navigation }) => {
       />
       <Text style={styles.header}>Forgot Password?</Text>
       <Text style={styles.subtitle}>
-        Enter your email address and we'll help you reset your password.
+        Enter your email address and we will send you a 6-digit OTP to reset your password.
       </Text>
 
       <View style={styles.inputGroup}>
@@ -119,7 +119,7 @@ const ForgotPassword = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <Button
           onPress={handleResetRequest}
-          text={isLoading ? "Sending..." : "Send Reset Instructions"}
+          text={isLoading ? "Sending..." : "Send OTP"}
           disabled={isLoading}
         />
       </View>

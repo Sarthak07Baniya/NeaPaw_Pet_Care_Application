@@ -16,6 +16,7 @@ import { authService } from "../../services/authService";
 
 const ResetPassword = ({ navigation, route }) => {
   const { email } = route.params || {};
+  const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,11 +32,19 @@ const ResetPassword = ({ navigation, route }) => {
   }
 
   const validate = () => {
-    if (!newPassword || !confirmPassword) {
+    if (!otp || !newPassword || !confirmPassword) {
       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'All fields are required.',
+      });
+      return false;
+    }
+    if (!/^\d{6}$/.test(otp)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please enter the 6-digit OTP sent to your email.',
       });
       return false;
     }
@@ -66,6 +75,7 @@ const ResetPassword = ({ navigation, route }) => {
     try {
       const response = await authService.confirmPasswordReset(
         email,
+        otp,
         newPassword,
         confirmPassword
       );
@@ -115,8 +125,21 @@ const ResetPassword = ({ navigation, route }) => {
       />
       <Text style={styles.header}>Reset Password</Text>
       <Text style={styles.subtitle}>
-        Enter your new password below.
+        Enter the OTP sent to {email || "your email"} and choose a new password.
       </Text>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>OTP Code</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter 6-digit OTP"
+          placeholderTextColor="#999"
+          keyboardType="number-pad"
+          maxLength={6}
+          value={otp}
+          onChangeText={setOtp}
+        />
+      </View>
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>New Password</Text>
@@ -219,6 +242,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: "#555",
+  },
+  input: {
+    height: 50,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: "#2C2C2C",
   },
   passwordContainer: {
     flexDirection: "row",

@@ -95,12 +95,13 @@ const ProfileHome = ({ navigation }) => {
 
   const menuItems = [
     { id: 1, title: "Edit Profile", icon: "edit", route: "EditProfile" },
-    { id: 2, title: "My Pets", icon: "grid", route: "MyPets" },
-    { id: 3, title: "Orders", icon: "shopping-bag", route: "OrdersStack" },
-    { id: 4, title: "Favourite Items", icon: "heart", route: "FavouriteItems" },
-    { id: 5, title: "Reviews", icon: "star", route: "ReviewsHome" },
-    { id: 6, title: "Notifications", icon: "bell", route: "NotificationsHome" },
-    { id: 7, title: "About Us", icon: "info", route: "AboutUs" },
+    { id: 2, title: "Change Password", icon: "lock", route: "ChangePassword" },
+    { id: 3, title: "My Pets", icon: "grid", route: "MyPets" },
+    { id: 4, title: "Orders", icon: "shopping-bag", route: "OrdersStack" },
+    { id: 5, title: "Favourite Items", icon: "heart", route: "FavouriteItems" },
+    { id: 6, title: "Reviews", icon: "star", route: "ReviewsHome" },
+    { id: 7, title: "Notifications", icon: "bell", route: "NotificationsHome" },
+    { id: 8, title: "About Us", icon: "info", route: "AboutUs" },
   ];
 
   return (
