@@ -1,0 +1,244 @@
+.admin-interface,
+html[data-bs-theme="light"],
+body[data-bs-theme="light"] {
+  color-scheme: light !important;
+}
+
+html[data-bs-theme="light"] body,
+body[data-bs-theme="light"],
+body[data-bs-theme="light"] .wrapper,
+body[data-bs-theme="light"] .content-wrapper {
+  background: linear-gradient(180deg, #f6f8fc 0%, #eef3fb 100%) !important;
+  color: #1f2937 !important;
+}
+
+.main-sidebar {
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%) !important;
+}
+
+.brand-link,
+.main-sidebar .user-panel,
+.main-sidebar .sidebar {
+  background: transparent !important;
+}
+
+.brand-link {
+  color: #f8fafc !important;
+}
+
+.brand-link .brand-text {
+  color: #f8fafc !important;
+}
+
+.main-sidebar .nav-sidebar .nav-link,
+.main-sidebar .nav-sidebar .nav-link p,
+.main-sidebar .nav-sidebar .nav-icon,
+.main-sidebar .user-panel .info a,
+.main-sidebar .user-panel .info,
+.main-sidebar .brand-link,
+.main-sidebar .brand-link:hover {
+  color: #e5e7eb !important;
+}
+
+.main-sidebar .nav-sidebar .nav-link:hover {
+  background: rgba(99, 102, 241, 0.14) !important;
+  color: #ffffff !important;
+}
+
+.main-header .navbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.brand-link {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.content-wrapper,
+body:not(.login-page) .content-wrapper,
+body:not(.login-page) .content-wrapper > .content,
+body:not(.login-page) .content-wrapper > .content-header,
+body:not(.login-page) .content-wrapper > .content > .container-fluid,
+body:not(.login-page) .content-wrapper > .content-header > .container-fluid {
+  background: linear-gradient(180deg, #f6f8fc 0%, #eef3fb 100%) !important;
+  min-height: calc(100vh - 57px) !important;
+}
+
+.content-wrapper,
+.content-wrapper .content,
+.content-wrapper .content-header,
+.content-wrapper .container-fluid,
+.content-wrapper .row,
+.content-wrapper .col-12,
+.content-wrapper .col-lg-9,
+.content-wrapper .col-lg-3 {
+  color: #1f2937 !important;
+}
+
+.content-wrapper .card,
+.content-wrapper .module,
+.content-wrapper .results,
+.content-wrapper .tabular,
+.content-wrapper .inline-group,
+.content-wrapper .colM,
+.content-wrapper .colMS,
+.content-wrapper .app-list,
+.content-wrapper .app-list .app,
+.content-wrapper .app-list .model,
+.content-wrapper .jazzmin-card,
+.content-wrapper #content-main,
+.content-wrapper #content,
+.content-wrapper #content-main .row,
+.content-wrapper #content-main .col-lg-9,
+.content-wrapper #content-main .col-lg-3 {
+  background: #ffffff !important;
+}
+
+.content-wrapper .card-header,
+.content-wrapper .card-body,
+.content-wrapper .timeline-item,
+.content-wrapper #content-related,
+.content-wrapper #recent-actions-module,
+.content-wrapper .app-list .card-header,
+.content-wrapper .app-list .card-body,
+.content-wrapper .app-list .card,
+.content-wrapper .app-list table,
+.content-wrapper .app-list tbody,
+.content-wrapper .app-list tr,
+.content-wrapper .app-list td,
+.content-wrapper .app-list th {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+.content-wrapper .breadcrumb,
+.content-wrapper .breadcrumb-item,
+.content-wrapper .breadcrumb-item a,
+.content-wrapper h1,
+.content-wrapper h2,
+.content-wrapper h3,
+.content-wrapper h4,
+.content-wrapper h5,
+.content-wrapper h6,
+.content-wrapper p,
+.content-wrapper span,
+.content-wrapper td,
+.content-wrapper th,
+.content-wrapper label {
+  color: #1f2937 !important;
+}
+
+.content-header h1,
+.content-header .m-0 {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.card,
+.small-box,
+.info-box,
+.jazzmin-box {
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+}
+
+.content-wrapper .table,
+.content-wrapper .results table {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+.content-wrapper .table tbody td,
+.content-wrapper .results tbody td,
+.content-wrapper .results tbody th,
+.content-wrapper .app-list td,
+.content-wrapper .app-list th,
+.content-wrapper .app-list a,
+.content-wrapper .model-name,
+.content-wrapper .model-name a,
+.content-wrapper .app-list caption {
+  color: #1f2937 !important;
+}
+
+.content-wrapper .app-list .card,
+.content-wrapper .card,
+.content-wrapper #recent-actions-module,
+.content-wrapper .module {
+  border-radius: 18px !important;
+  overflow: hidden;
+}
+
+.content-wrapper .app-list .model a,
+.content-wrapper .app-list .model-name a,
+.content-wrapper .addlink,
+.content-wrapper .changelink,
+.content-wrapper .viewlink {
+  color: #4f46e5 !important;
+}
+
+.content-wrapper .app-list .model a:hover,
+.content-wrapper .app-list .model-name a:hover,
+.content-wrapper .addlink:hover,
+.content-wrapper .changelink:hover,
+.content-wrapper .viewlink:hover {
+  color: #3730a3 !important;
+}
+
+.btn,
+.select2-container--default .select2-selection--single,
+.form-control {
+  border-radius: 12px !important;
+}
+
+.btn-primary,
+.btn-info,
+.btn-success {
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.18);
+}
+
+.main-sidebar .nav-sidebar .nav-link.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.24);
+}
+
+.content-wrapper .table thead th,
+.content-wrapper .table thead th a,
+.content-wrapper .table tbody td a,
+.content-wrapper a,
+.change-list .results th a,
+.change-list .results td a {
+  color: #4f46e5 !important;
+}
+
+.content-wrapper a:not(.btn):not(.page-link):not(.nav-link),
+.change-list .results a {
+  color: #4f46e5 !important;
+}
+
+.content-wrapper .table tbody td a:hover,
+.content-wrapper a:not(.btn):not(.page-link):not(.nav-link):hover,
+.change-list .results td a:hover,
+.change-list .results th a:hover {
+  color: #3730a3 !important;
+}
+
+.main-sidebar .nav-sidebar .nav-header {
+  color: #cbd5e1 !important;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-page {
+  background: radial-gradient(circle at top left, #dbeafe 0%, #eff6ff 35%, #f8fafc 100%);
+}
+
+.login-box .card {
+  border-radius: 24px !important;
+  overflow: hidden;
+}
